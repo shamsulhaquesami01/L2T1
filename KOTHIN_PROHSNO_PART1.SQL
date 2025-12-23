@@ -85,4 +85,15 @@ ORDER  BY working_days DESC;
 --  Show employee_id, hire_date, quarter, and days_until_next_quarter.
 --   Sort by quarter, then hire_date.
 
-select employee_id, to_char(hire_date, 'Q') from EMPLOYEES;
+select employee_id, to_char(hire_date, 'Q') as quarter,hire_date,
+    CASE
+        when
+            to_char(hire_date, 'MM') in ('03','12')
+                then 31 - to_char(hire_date,'DD')
+        else
+            30 - to_char(hire_date,'DD')
+    end
+
+     from EMPLOYEES
+        where to_char(hire_date, 'MM') in ('03','06','09','12') AND
+              to_char(hire_date, 'DD') in ('24','25','26','27','28','29','30','31');
