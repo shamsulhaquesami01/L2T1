@@ -93,7 +93,7 @@ select employee_id, to_char(hire_date, 'Q') as quarter,hire_date,
         else
             30 - to_char(hire_date,'DD')
     end
-
+    as days_until
      from EMPLOYEES
         where to_char(hire_date, 'MM') in ('03','06','09','12') AND
               to_char(hire_date, 'DD') in ('24','25','26','27','28','29','30','31');
