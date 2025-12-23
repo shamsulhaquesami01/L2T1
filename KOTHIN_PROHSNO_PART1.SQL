@@ -97,3 +97,8 @@ select employee_id, to_char(hire_date, 'Q') as quarter,hire_date,
      from EMPLOYEES
         where to_char(hire_date, 'MM') in ('03','06','09','12') AND
               to_char(hire_date, 'DD') in ('24','25','26','27','28','29','30','31');
+
+
+-- Find employees whose work anniversary (hire_date) falls in the SAME WEEK as today's date.
+--  Display employee_id, full_name, hire_date, years_of_service, and the exact anniversary date this year. 
+--  Sort by years_of_service descending
