@@ -182,3 +182,5 @@ select first_name||' '||last_name full_name, hire_date from EMPLOYEES
 
 --hi hello how are you
 --email vul korsi re
+
+//hayre
