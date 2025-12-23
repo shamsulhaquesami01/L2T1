@@ -102,3 +102,35 @@ select employee_id, to_char(hire_date, 'Q') as quarter,hire_date,
 -- Find employees whose work anniversary (hire_date) falls in the SAME WEEK as today's date.
 --  Display employee_id, full_name, hire_date, years_of_service, and the exact anniversary date this year. 
 --  Sort by years_of_service descending
+
+SELECT 
+    EMPLOYEE_ID, 
+    FIRST_NAME || ' ' || LAST_NAME AS FULL_NAME, 
+    HIRE_DATE,
+    -- Calculate years of service
+    FLOOR(MONTHS_BETWEEN(SYSDATE, HIRE_DATE) / 12) AS YEARS_OF_SERVICE,
+    -- Construct the exact anniversary date for the current year
+    TO_DATE(TO_CHAR(HIRE_DATE, 'DD-MM-') || TO_CHAR(SYSDATE, 'YYYY'), 'DD-MM-YYYY') AS ANNIVERSARY_DATE_2025
+FROM EMPLOYEES
+WHERE TO_CHAR(HIRE_DATE, 'WW') = TO_CHAR(SYSDATE, 'WW')
+ORDER BY YEARS_OF_SERVICE DESC;
+
+
+-- For each department, show department_id, total employees,
+--  count of employees with salary > department average, count with salary < department average,
+--   and count with salary = department average. Exclude departments with less than 3 employees.
+
+select department_id, count(*),
+        SUM(CASE WHEN salary > dept_avg THEN 1 ELSE 0 END) AS above_avg, 
+        SUM(CASE WHEN salary < dept_avg THEN 1 ELSE 0 END) AS below_avg,
+        SUM(CASE WHEN salary = dept_avg THEN 1 ELSE 0 END) AS equal_avg
+        from(
+                select department_id,salary,avg(salary)
+                    over(partition by department_id) as dept_avg
+                    from EMPLOYEES
+                    where department_id is not null
+
+        )
+        group by department_id
+        having count(*) >= 3
+        order by department_id;
