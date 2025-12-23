@@ -84,3 +84,5 @@ ORDER  BY working_days DESC;
 -- Find employees hired in the LAST WEEK of any quarter (Q1, Q2, Q3, Q4).
 --  Show employee_id, hire_date, quarter, and days_until_next_quarter.
 --   Sort by quarter, then hire_date.
+
+select employee_id, to_char(hire_date, 'Q') from EMPLOYEES;
