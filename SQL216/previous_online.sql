@@ -126,25 +126,58 @@ select manager_id, count(*) as " number of employees", avg(salary) as average
             order by count(*) asc, avg(salary) desc;
 
 
-1. Count the number of employees hired during each quarter of the year. [Hint: You
-can convert a number (e.g., 1) into its corresponding month ‘Jan’ by using the
-function to_char (to_date (1,‘MM’), ‘Mon’)]
-2. Display the full name (full name includes first name, a space and last name) of
-the employees formatted as right justified in the column, in such a way that a total
-20 characters are shown including the name. Order the result in ascending order
-of the length of their full names.
-3. Display the country id and address for each of the locations. Address should be
-generated in the format (street_address, city, state_province - postal_code). Your
-address should be displayed only when all the required fields are available. Order
-the result in lexicographic order of the country id. In case of any tie, break it by the
-reverse lexicographic order of the postal code.
-4. For each department and each job, show the department id, job id, the first hiring
-date, the last hiring date and average salary. Show the outputs with an average
-salary more than 8000. Make sure any sort of null value is not printed and the
-average salary value is rounded to two decimal digits. Order the result by
-department id.
-5. Show the full name (full name includes first name, a space and last name) and
-hire date of all employees whose first name starts with a consonant and the last
-name does not contain the letter B/b, and who have joined in November. Show
-the hire date along with the full name of the employees. Show the results in the
-lexicographical order of full name.
+-- 1. Count the number of employees hired during each quarter of the year. [Hint: You
+-- can convert a number (e.g., 1) into its corresponding month ‘Jan’ by using the
+-- function to_char (to_date (1,‘MM’), ‘Mon’)]
+-- 2. Display the full name (full name includes first name, a space and last name) of
+-- the employees formatted as right justified in the column, in such a way that a total
+-- 20 characters are shown including the name. Order the result in ascending order
+-- of the length of their full names.
+-- 3. Display the country id and address for each of the locations. Address should be
+-- generated in the format (street_address, city, state_province - postal_code). Your
+-- address should be displayed only when all the required fields are available. Order
+-- the result in lexicographic order of the country id. In case of any tie, break it by the
+-- reverse lexicographic order of the postal code.
+-- 4. For each department and each job, show the department id, job id, the first hiring
+-- date, the last hiring date and average salary. Show the outputs with an average
+-- salary more than 8000. Make sure any sort of null value is not printed and the
+-- average salary value is rounded to two decimal digits. Order the result by
+-- department id.
+-- 5. Show the full name (full name includes first name, a space and last name) and
+-- hire date of all employees whose first name starts with a consonant and the last
+-- name does not contain the letter B/b, and who have joined in November. Show
+-- the hire date along with the full name of the employees. Show the results in the
+-- lexicographical order of full name.
+
+
+select CEIL(to_char (hire_date, 'MM')/3) ,count(*) 
+        from EMPLOYEES
+        group by CEIL(to_char (hire_date, 'MM')/3) 
+        order by CEIL(to_char (hire_date, 'MM')/3) asc;
+
+select lpad(first_name||' '||last_name,20,' ') as "full_name"
+        from EMPLOYEES
+        order by length(first_name||' '||last_name) asc;
+
+
+select country_id, street_address||','|| city||','||state_province||'-'||postal_code as address
+        from LOCATIONS
+        where COUNTRY_ID is not null and STREET_ADDRESS is not null and  city is not null
+         and  STATE_PROVINCE is not null and postal_code is not NULL
+         order by country_id ASC , postal_code asc;
+
+select department_id, job_id, min(hire_date), max(hire_date), round(avg(salary),2) average
+                    from employees
+                    where DEPARTMENT_ID is not null and JOB_ID is not null
+                    group by DEPARTMENT_ID, JOB_ID
+                    order by DEPARTMENT_ID ASC;
+
+
+select first_name||' '||last_name full_name, hire_date from EMPLOYEES
+        where substr(lower(first_name),1,1) not in ('a','e','i','o','u') AND
+              lower(last_name) not like '%b%' AND to_char(hire_date, 'mm')='11'
+        order by full_name asc;
+
+
+
+--hi hello how are you
