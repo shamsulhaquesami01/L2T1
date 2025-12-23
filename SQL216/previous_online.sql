@@ -27,6 +27,8 @@ is not printed.
 consonants.
 */
 
+
+
 --2
 
 
@@ -43,3 +45,23 @@ GROUP BY JOB_ID
 HAVING COUNT(*) >= 2;
 
 --3
+
+select DEPARTMENT_ID, min(salary) minimum, max(salary) maximum, round(avg(salary),4) average
+        from EMPLOYEES
+        where DEPARTMENT_ID <> 50
+        group by DEPARTMENT_ID
+        order by maximum-minimum DESC, average ASC;
+
+--4
+
+select manager_id,count(*) as "number of employees", avg(salary) average
+        from EMPLOYEES
+        where MANAGER_ID is not NULL
+        GROUP by MANAGER_ID
+        having count(*) <10 and avg(salary) < 4000
+        order by count(*) asc, average desc;
+
+--5
+
+select last_name from EMPLOYEES
+        where mod(length(last_name) - length(translate(lower(last_name), 'dAEIOUaeiou', 'd')),2) <>0;
