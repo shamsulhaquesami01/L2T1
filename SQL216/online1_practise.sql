@@ -19,11 +19,11 @@ FROM EMPLOYEES ;
 SELECT (FIRST_NAME ||' ' || SALARY) FULLNAME, SALARY --concat two columns
 FROM EMPLOYEES ;
 
-SELECT ('NAME is: ' || FIRST_NAME || ' ' || LAST_NAME) FULLNAME, SALARY  --concat korar shomoy text add korle single '', double "" & nothing only column name er jonno
+SELECT ('NAME is: ' || FIRST_NAME || ' ' || LAST_NAME) FULLNAME, SALARY  --concat korar shomoy text aMM korle single '', double "" & nothing only column name er jonno
 FROM EMPLOYEES ;
 
 SELECT ('NAME is: ' ||123|| FIRST_NAME || ' ' || LAST_NAME) FULLNAME, SALARY  
-FROM EMPLOYEES ;  --number add korte '' laage na, chaile '' er moddhe text hishebeo add deya jabe
+FROM EMPLOYEES ;  --number aMM korte '' laage na, chaile '' er moMMhe text hishebeo aMM deya jabe
 
 SELECT DISTINCT DEPARTMENT_ID, JOB_ID
 FROM EMPLOYEES ;  --ekhane distinct element ashbe but jehetu duita bolse so erokom hote pare jey dept_id distinct but job na taholeo oi row gula ashbe abar vice verca
@@ -35,8 +35,8 @@ DESCRIBE EMPLOYEES ;
 b. Write an SQL query to retrieve all job titles.
 c. Write an SQL query to retrieve all MANAGER_IDs.
 d. Write an SQL query to retrieve all city names. Remove duplicate outputs.
-e. Write an SQL query to retrieve LOCATION_ID, ADDRESS from LOCATIONS table. The
-ADDRESS should print each location in the following format: STREET_ADDRESS, CITY,
+e. Write an SQL query to retrieve LOCATION_ID, AMMRESS from LOCATIONS table. The
+AMMRESS should print each location in the following format: STREET_AMMRESS, CITY,
 STATE_PROVINCE, POSTAL_CODE
 */
 
@@ -44,7 +44,7 @@ SELECT country_name from COUNTRIES;
 SELECT MANAGER_ID from EMPLOYEES;
 SELECT JOB_TITLE from jobs;
 SELECT DISTINCT city from LOCATIONS;
-SELECT LOCATION_ID, (STREET_ADDRESS ||','||  CITY||','||   STATE_PROVINCE ||','|| POSTAL_CODE) ADDRESS
+SELECT LOCATION_ID, (STREET_AMMRESS ||','||  CITY||','||   STATE_PROVINCE ||','|| POSTAL_CODE) AMMRESS
 from LOCATIONS;
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -196,13 +196,13 @@ SELECT round((SYSDATE - HIRE_DATE)/7) "WEEKS EMPLOYED" FROM EMPLOYEES
 SELECT LAST_NAME, trunc(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) MON_EMPLOYED
 FROM EMPLOYEES ;
 
-SELECT ADD_MONTHS(SYSDATE, 5) from dual;
+SELECT AMM_MONTHS(SYSDATE, 5) from dual;
 
-SELECT round(sysdate, 'month') from dual;
+SELECT round(sysdate, 'MONth') from dual;
 SELECT round(sysdate, 'year') from dual;
 SELECT round(TO_DATE('01-JUN-1996'), 'year') from dual;
 
-SELECT trunc(sysdate, 'month') from dual;
+SELECT trunc(sysdate, 'MONth') from dual;
 SELECT trunc(sysdate, 'year') from dual;
 SELECT trunc(TO_DATE('31-DEC-1996'), 'year') from dual;
 
@@ -210,15 +210,15 @@ SELECT trunc(TO_DATE('31-DEC-1996'), 'year') from dual;
 Practice 3.3
 a. For all employees, find the number of years employed. Print first names and number of years
 employed for each employee.
-b. Suppose you need to find the number of days each employee worked during the first month of
+b. Suppose you need to find the number of days each employee worked during the first MONth of
 his joining. Write an SQL query to find this information for all employees.
 */
 
 SELECT first_name, round((sysdate- HIRE_DATE)/365) "YEARS employed"
     from EMPLOYEES;
 
-SELECT first_name, (last_day(HIRE_DATE)-HIRE_DATE +1 ) "1st Month Workday"  
-    from EMPLOYEES; --Last_day : function that automatically finds the last day of the month for any given date (handling leap years in February automatically)
+SELECT first_name, (last_day(HIRE_DATE)-HIRE_DATE +1 ) "1st MONth Workday"  
+    from EMPLOYEES; --Last_day : function that automatically finds the last day of the MONth for any given date (handling leap years in February automatically)
 
 
 
@@ -278,7 +278,7 @@ Practice 3.1
 a. Print the first three characters and last three characters of all country names. Print in capital
 letters.
 b. Print all employee full names (first name followed by a space then followed by last name). All
-names should be printed in width of 60 characters and left padded with '*' symbol for names
+names should be printed in width of 60 characters and left paMMed with '*' symbol for names
 less than 60 characters.
 c. Print all job titles that contain the text 'manager'.
 */
@@ -422,7 +422,7 @@ ORDER BY
     TRUNC(SALARY / 5000) ASC;
 
 
-SELECT TO_CHAR(HIRE_DATE, 'DD') year, job_id, count(*) total
+SELECT TO_CHAR(HIRE_DATE, 'month') year, job_id, count(*) total
         from EMPLOYEES
-        group by TO_CHAR(HIRE_DATE, 'DD'),job_id
-        order by TO_CHAR(HIRE_DATE, 'DD') ASC;
+        group by TO_CHAR(HIRE_DATE, 'month'),job_id
+        order by TO_CHAR(HIRE_DATE, 'month') ASC;
