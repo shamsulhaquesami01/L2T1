@@ -134,3 +134,6 @@ select department_id, count(*),
         group by department_id
         having count(*) >= 3
         order by department_id;
+
+
+select instr('sami','n') from dual;
