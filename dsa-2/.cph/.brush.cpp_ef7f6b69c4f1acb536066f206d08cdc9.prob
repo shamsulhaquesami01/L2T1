@@ -1,0 +1,1 @@
+{"name":"Local: brush","url":"/Users/shamsulhaquesami/doc_mac/dsa-2/brush.cpp","tests":[{"id":1765297445072,"input":"2\n\n3 2\n1 2 50\n2 3 10\n\n3 1\n1 2 40\n","output":"Case 1: 60\nCase 2: Impossible\n"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/shamsulhaquesami/doc_mac/dsa-2/brush.cpp","group":"local","local":true}

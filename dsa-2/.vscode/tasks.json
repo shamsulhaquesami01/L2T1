@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "clang++",
+      "args": [
+        "-std=c++20",           // 👈 This enables modern C++
+        "-Wall",
+        "${file}",
+        "-o",
+        "${fileDirname}/a.out"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

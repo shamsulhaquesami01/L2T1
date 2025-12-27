@@ -51,6 +51,7 @@ SELECT job_id, max(salary)-min(salary) as range from EMPLOYEES
         having count(*) > 1
         order by range desc;
 
-Show all the employees' employee id, last name and annual salary who are from department
-60 or 80 or 100 and have an annual salary greater than 100000 in descending order of their
-annual salary and then ascending order of their first name.
+-- Show all the employees' employee id, last name and annual salary who are from department
+-- 60 or 80 or 100 and have an annual salary greater than 100000 in descending order of their
+-- annual salary and then ascending order of their first name.
+
