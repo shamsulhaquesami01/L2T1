@@ -25,7 +25,7 @@ int main() {
         adj[u].push_back({v, w});
     }
 
-    // Arrays to store the 4 required values
+    // Arrays to sto re the 4 required values
     vector<long long> dist(n + 1, INF);
     vector<long long> count(n + 1, 0);
     vector<int> min_flights(n + 1, 0);
