@@ -55,3 +55,6 @@ SELECT job_id, max(salary)-min(salary) as range from EMPLOYEES
 -- 60 or 80 or 100 and have an annual salary greater than 100000 in descending order of their
 -- annual salary and then ascending order of their first name.
 
+select employee_id,last_name,salary*12 as annual from EMPLOYEES
+        where department_id in(60,80,100) AND salary*12 > 100000
+                order by annual desc, FIRST_NAME asc;
