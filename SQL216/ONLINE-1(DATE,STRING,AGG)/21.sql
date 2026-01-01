@@ -58,3 +58,11 @@ SELECT job_id, max(salary)-min(salary) as range from EMPLOYEES
 select employee_id,last_name,salary*12 as annual from EMPLOYEES
         where department_id in(60,80,100) AND salary*12 > 100000
                 order by annual desc, FIRST_NAME asc;
+
+-- Create a dept email address for each of the employees in the EMPLOYEES table. Assume
+-- that the domain is “.buet.ac.bd”. Remember, the company doesn't want to have any space(‘
+-- ‘) or underscore(‘_’) in the email address. And everything should be in lowercase. Show the
+-- results for employees who have spaces in their first or last name.
+-- Example output:
+
+
