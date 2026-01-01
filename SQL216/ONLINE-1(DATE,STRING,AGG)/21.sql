@@ -66,3 +66,19 @@ select employee_id,last_name,salary*12 as annual from EMPLOYEES
 -- Example output:
 
 
+-- If the company begins offering a 2% extra commission to employees with over 15 years of
+-- service (and no commission for others), how much total commission will the company need
+-- to pay to its employees based on the EMPLOYEES table? For example, If an employee has
+-- worked no more than 15 years, he gets 0% commission. Otherwise, if he gets 3%
+-- commission, now he’ll get 5% commission; and if he gets a null commission he’ll get 2%
+-- commission now.
+select sum(col) from(
+select (
+case
+        when months_between(sysdate,hire_date) >= 180 then (COMMISSION_PCT+0.02)*salary
+        else 0
+end
+) as col from EMPLOYEES
+);
+
+select trunc(hire_date) from EMPLOYEES;
