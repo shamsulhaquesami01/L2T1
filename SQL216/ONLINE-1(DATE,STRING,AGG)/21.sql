@@ -81,5 +81,17 @@ end
 ) as col from EMPLOYEES
 );
 
--- Find the total number of employees hired in each triennial period (every three years, for
--- example: 2001-2003) for each job type. Sort them in descending chronological order.
+SELECT 
+    JOB_ID,
+    TO_CHAR(TRUNC(hire_date, 'YYYY') - MOD(TO_NUMBER(TO_CHAR(hire_date, 'YYYY')), 3), 'YYYY') 
+        || '-' ||
+    TO_CHAR(TRUNC(hire_date, 'YYYY') - MOD(TO_NUMBER(TO_CHAR(hire_date, 'YYYY')), 3) + INTERVAL '2' YEAR, 'YYYY') 
+        AS triennial_period,
+    COUNT(*) AS total_hired
+FROM employees
+GROUP BY 
+    JOB_ID,
+    TRUNC(hire_date, 'YYYY') - MOD(TO_NUMBER(TO_CHAR(hire_date, 'YYYY')), 3)
+ORDER BY 
+    triennial_period DESC,
+    JOB_ID;
