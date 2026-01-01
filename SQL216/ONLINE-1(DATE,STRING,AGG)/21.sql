@@ -81,4 +81,5 @@ end
 ) as col from EMPLOYEES
 );
 
-select trunc(hire_date) from EMPLOYEES;
+-- Find the total number of employees hired in each triennial period (every three years, for
+-- example: 2001-2003) for each job type. Sort them in descending chronological order.
