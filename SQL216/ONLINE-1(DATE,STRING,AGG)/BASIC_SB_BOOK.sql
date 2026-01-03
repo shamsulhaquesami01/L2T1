@@ -204,7 +204,7 @@ SELECT round(TO_DATE('01-JUN-1996'), 'year') from dual;
 
 SELECT trunc(sysdate, 'MONth') from dual;
 SELECT trunc(sysdate, 'year') from dual;
-SELECT trunc(TO_DATE('31-DEC-1996'), 'year') from dual;
+SELECT trunc(TO_DATE('31-DEC-1996')) from dual;
 
 /*
 Practice 3.3
