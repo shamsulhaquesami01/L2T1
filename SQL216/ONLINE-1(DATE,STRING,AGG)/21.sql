@@ -95,3 +95,26 @@ GROUP BY
 ORDER BY 
     triennial_period DESC,
     JOB_ID;
+
+-- For each department, print the number of employees that receive salary higher than 6500
+-- and the number of employees that receive salary not higher than 6500. Print the result for
+-- only those departments that have less people with salary more than 6500 than people with
+-- salary no more than 6500.
+-- Example output:
+
+SELECT department_id,
+       SUM(CASE WHEN salary > 6500 THEN 1 ELSE 0 END) AS higher_than_6500,
+       SUM(CASE WHEN salary <= 6500 THEN 1 ELSE 0 END) AS not_higher_than_6500
+FROM   employees
+WHERE  department_id IS NOT NULL
+GROUP BY department_id
+HAVING SUM(CASE WHEN salary > 6500 THEN 1 ELSE 0 END)
+       < SUM(CASE WHEN salary <= 6500 THEN 1 ELSE 0 END)
+ORDER BY department_id;
+
+-- Show all the employees' last name, hiring date and total monthly compensation
+-- (SALARY+SALARY*COMMISSION_PCT) who are hired between '01-JAN-2000' and
+-- '31-DEC-2022' and have a salary greater than 6000 or a non-NULL commission percentage
+-- in descending order of their total monthly compensation and then ascending order of their
+-- hiring date.
+
