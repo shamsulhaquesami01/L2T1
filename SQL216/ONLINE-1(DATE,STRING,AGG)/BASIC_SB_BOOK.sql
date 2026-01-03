@@ -7,7 +7,7 @@ SELECT *FROM EMPLOYEES;
 SELECT employee_id, last_name, salary*12 yearly --ek word hole normally
 from EMPLOYEES;
 
-SELECT employee_id, last_name, salary*12 "yearly salary" --space thakle double ""
+SELECT employee_id, last_name, salary*12 as "yearly salary" --space thakle double ""
 from EMPLOYEES;
 
 SELECT LAST_NAME, COMMISSION_PCT
@@ -62,7 +62,7 @@ WHERE COMMISSION_PCT IS NULL ; -- = NUll dile hobe na; null = null is false
 
 SELECT LAST_NAME, SALARY
 FROM EMPLOYEES
-WHERE HIRE_DATE BETWEEN '01-JAN-2003' AND '31-DEC-2005' ; --between is inclusive of the conditions
+WHERE HIRE_DATE  BETWEEN '01-JAN-2003' AND '31-DEC-2005' ; --between is inclusive of the conditions
 
 SELECT LAST_NAME, SALARY
 FROM EMPLOYEES
@@ -103,7 +103,7 @@ WHERE LAST_NAME LIKE '_ _ b' ; --contains exactly three characters in which the 
 
 SELECT LAST_NAME, SALARY
 FROM EMPLOYEES
-WHERE LAST_NAME LIKE '_%' ;  --contains at least one character, i.e.,last name cannot be empty text
+WHERE LAST_NAME LIKE '_a_%' ;  --contains at least one character, i.e.,last name cannot be empty text
 
 
 
@@ -193,7 +193,7 @@ select sysdate from dual; --dual empty table for checking functions; sysdate cur
 SELECT round((SYSDATE - HIRE_DATE)/7) "WEEKS EMPLOYED" FROM EMPLOYEES
     WHERE DEPARTMENT_ID = 80 ;
 
-SELECT LAST_NAME, trunc(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) MON_EMPLOYED
+SELECT LAST_NAME,  (MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) MON_EMPLOYED
 FROM EMPLOYEES ;
 
 SELECT AMM_MONTHS(SYSDATE, 5) from dual;
@@ -426,3 +426,7 @@ SELECT TO_CHAR(HIRE_DATE, 'month') year, job_id, count(*) total
         from EMPLOYEES
         group by TO_CHAR(HIRE_DATE, 'month'),job_id
         order by TO_CHAR(HIRE_DATE, 'month') ASC;
+
+select to_char(last_day('01/jan/2025'),'dd/mm/yyyy') from dual;
+
+select to_char(to_date(2027, 'YYYY'),'year') from dual;

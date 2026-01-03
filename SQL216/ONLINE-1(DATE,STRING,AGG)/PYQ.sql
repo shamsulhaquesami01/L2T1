@@ -30,9 +30,9 @@ SELECT employee_id, first_name ||' '|| last_name full_name, department_id, salar
         WHERE FIRST_NAME LIKE 'D%' AND LAST_NAME LIKE '___n%' AND (DEPARTMENT_ID BETWEEN 20 and 70);
 
 
-select job_id 
+select job_id ,count(*)
   from EMPLOYEES 
-  where (sysdate-HIRE_DATE) <=1500
+  where (sysdate-HIRE_DATE) >=1500
   group by JOB_id
   HAVING count(*) >=2;
 
@@ -123,7 +123,7 @@ select manager_id, count(*) as " number of employees", avg(salary) as average
             TO_CHAR(hire_date, 'MM') in ('03', '09','12')
             group by MANAGER_ID
             having mod( avg(salary),1)=0
-            order by count(*) asc, avg(salary) desc;
+            order by count(*) asc, avg(salary) desc; 
 
 
 -- 1. Count the number of employees hired during each quarter of the year. [Hint: You
