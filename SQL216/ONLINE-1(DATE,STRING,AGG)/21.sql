@@ -118,3 +118,27 @@ ORDER BY department_id;
 -- in descending order of their total monthly compensation and then ascending order of their
 -- hiring date.
 
+select last_name,hire_date, (SALARY+SALARY*nvl(COMMISSION_PCT,0))as comensatiin from EMPLOYEES
+                where HIRE_DATE BETWEEN '01-JAN-2000' AND '31-DEC-2022' AND (salary>6000 OR COMMISSION_PCT is not null)
+                  ORDER BY comensatiin DESC, HIRE_DATE ASC;
+
+select phone_number, substr(phone_number, 1,instr(phone_number,'.')-1) as country_code,
+                        substr(phone_number,instr(phone_number,'.')+1,instr(PHONE_NUMBER,'.',1,2)-instr(phone_number,'.')-1) as region_code
+                 from EMPLOYEES;
+select * from JOB_HISTORY;
+
+select avg(months_between(end_date,START_DATE)/12) from JOB_HISTORY where job_id ='ST_CLERK';
+
+
+select (
+        CASE
+                when length(phone_number)-length(translate(phone_number,'a.','a')) >2 then substr(phone_number,1,instr(phone_number,'.',1,3)-1)
+                else substr(phone_number,1,instr(phone_number,'.',1,2)-1)
+        END
+) as contact ,count(*) from EMPLOYEES
+group by (
+        CASE
+                when length(phone_number)-length(translate(phone_number,'a.','a')) >2 then substr(phone_number,1,instr(phone_number,'.',1,3)-1)
+                else substr(phone_number,1,instr(phone_number,'.',1,2)-1)
+        END
+) ;
