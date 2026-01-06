@@ -1,3 +1,7 @@
+/*Given a 2D grid of size n*n, where each cell represents the cost to traverse through that cell, the task is to find the minimum cost to move from the top left cell to the bottom right cell. From a given cell, we can move in 4 directions: left, right, up, down.
+
+Note: It is assumed that negative cost cycles do not exist in input matrix.*/
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -23,11 +27,13 @@ struct Cell {
 };
 
 int minimumCostPath(vector<vector<int>>& grid) {
-    int n = grid.size();
+    int rows = grid.size();
+    if (rows == 0) return 0;
+    int cols = grid[0].size();
     
     // Distance matrix to store min cost to reach each cell
     // Initialize with a large value (Infinity)
-    vector<vector<int>> dist(n, vector<int>(n, INT_MAX));
+    vector<vector<int>> dist(rows, vector<int>(cols, INT_MAX));
 
     // Priority Queue: {cost, r, c}
     priority_queue<Cell, vector<Cell>, greater<Cell>> pq;
@@ -48,16 +54,15 @@ int minimumCostPath(vector<vector<int>>& grid) {
         if (d > dist[r][c]) continue;
 
         // If we reached the bottom-right cell, return the cost
-        // (Optional: can just let it run to fill dist matrix, but usually faster to stop)
-        if (r == n - 1 && c == n - 1) return d;
+        if (r == rows - 1 && c == cols - 1) return d;
 
         // Check all 4 neighbors
         for (int i = 0; i < 4; i++) {
             int nr = r + dx[i];
             int nc = c + dy[i];
 
-            // Check boundary conditions
-            if (nr >= 0 && nr < n && nc >= 0 && nc < n) {
+            // Check boundary conditions using rows and cols
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
                 int newDist = d + grid[nr][nc];
 
                 // Relaxation Step
@@ -69,19 +74,29 @@ int minimumCostPath(vector<vector<int>>& grid) {
         }
     }
 
-    return dist[n - 1][n - 1];
+    return dist[rows - 1][cols - 1];
 }
 
 int main() {
-    // Example Input
-    vector<vector<int>> grid = {
-        {9, 4, 9, 9},
-        {6, 7, 6, 4},
-        {8, 3, 3, 7},
-        {7, 4, 9, 10}
-    };
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
 
-    cout << minimumCostPath(grid) << endl; // Output: 43
+    int m, n;
+    // Reading dimensions: m = rows, n = columns
+    if (cin >> m >> n) {
+        vector<vector<int>> grid(m, vector<int>(n));
+        
+        // Reading the grid values
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                cin >> grid[i][j];
+            }
+        }
+
+        // Solve and print
+        cout << minimumCostPath(grid) << endl;
+    }
 
     return 0;
 }
