@@ -1,79 +1,87 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <tuple>
 #include <climits>
 
 using namespace std;
 
-const long long INF = 1e18;
+// Direction arrays for moving Left, Right, Up, Down
+const int dx[] = {0, 0, -1, 1};
+const int dy[] = {-1, 1, 0, 0};
 
-struct Flight {
-    int to;
-    int dep; // Departure Time
-    int dur; // Duration
+// Structure to represent the state in Priority Queue
+struct Cell {
+    int cost;
+    int r;
+    int c;
+
+    // Operator overloading for Min-Heap (Lowest cost at top)
+    bool operator>(const Cell& other) const {
+        return cost > other.cost;
+    }
 };
 
-void solve() {
-    int n, m;
-    if (!(cin >> n >> m)) return;
-
-    vector<vector<Flight>> adj(n + 1);
-    for (int i = 0; i < m; ++i) {
-        int u, v, dep, dur;
-        cin >> u >> v >> dep >> dur;
-        adj[u].push_back({v, dep, dur});
-    }
-
-    int s, t, t0;
-    cin >> s >> t >> t0;
-
-    // dist[i] stores the earliest arrival time at node i
-    vector<long long> dist(n + 1, INF);
+int minimumCostPath(vector<vector<int>>& grid) {
+    int n = grid.size();
     
-    // Priority Queue: {arrival_time, u} (Min-Heap)
-    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+    // Distance matrix to store min cost to reach each cell
+    // Initialize with a large value (Infinity)
+    vector<vector<int>> dist(n, vector<int>(n, INT_MAX));
 
-    // Initial State: We are at source 's' at time 't0'
-    dist[s] = t0;
-    pq.push({t0, s});
+    // Priority Queue: {cost, r, c}
+    priority_queue<Cell, vector<Cell>, greater<Cell>> pq;
+
+    // Initial State: Start at (0,0)
+    dist[0][0] = grid[0][0];
+    pq.push({grid[0][0], 0, 0});
 
     while (!pq.empty()) {
-        long long curr_time = pq.top().first;
-        int u = pq.top().second;
+        Cell current = pq.top();
         pq.pop();
 
-        // If we found a faster way to 'u' already, skip this stale state
-        if (curr_time > dist[u]) continue;
+        int d = current.cost;
+        int r = current.r;
+        int c = current.c;
 
-        // If we reached the target, we don't stop immediately in generic Dijkstra,
-        // but for simple shortest path, the first time we extract 't', it's optimal.
-        if (u == t) {
-            cout << curr_time << endl;
-            return;
-        }
+        // Optimization: If we found a shorter path to this cell already, skip stale entry
+        if (d > dist[r][c]) continue;
 
-        for (const auto& flight : adj[u]) {
-            // CHECK: Can we catch this flight?
-            // We must arrive at 'u' (curr_time) BEFORE or AT departure (flight.dep)
-            if (curr_time <= flight.dep) {
-                long long arrival_at_dest = flight.dep + flight.dur;
+        // If we reached the bottom-right cell, return the cost
+        // (Optional: can just let it run to fill dist matrix, but usually faster to stop)
+        if (r == n - 1 && c == n - 1) return d;
 
-                // RELAXATION: Is this flight getting us to 'v' earlier than before?
-                if (arrival_at_dest < dist[flight.to]) {
-                    dist[flight.to] = arrival_at_dest;
-                    pq.push({dist[flight.to], flight.to});
+        // Check all 4 neighbors
+        for (int i = 0; i < 4; i++) {
+            int nr = r + dx[i];
+            int nc = c + dy[i];
+
+            // Check boundary conditions
+            if (nr >= 0 && nr < n && nc >= 0 && nc < n) {
+                int newDist = d + grid[nr][nc];
+
+                // Relaxation Step
+                if (newDist < dist[nr][nc]) {
+                    dist[nr][nc] = newDist;
+                    pq.push({newDist, nr, nc});
                 }
             }
         }
     }
 
-    // If reachable, we returned above. If queue empty and t not reached:
-    cout << -1 << endl;
+    return dist[n - 1][n - 1];
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    solve();
+    // Example Input
+    vector<vector<int>> grid = {
+        {9, 4, 9, 9},
+        {6, 7, 6, 4},
+        {8, 3, 3, 7},
+        {7, 4, 9, 10}
+    };
+
+    cout << minimumCostPath(grid) << endl; // Output: 43
+
     return 0;
 }
