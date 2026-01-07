@@ -51,7 +51,7 @@ void solve() {
                 pq.push({dist[v][used], v, used});
             }
 
-            // Option 2: Use a coupon (if we have any left)
+            //Option 2: Use a coupon (if we have any left)
             if (used < k) {
                 int new_w = w / 2;
                 if (d + new_w < dist[v][used + 1]) {
