@@ -47,7 +47,7 @@ void solve() {
     
     // parent[node][state] to reconstruct path
     // Initialize with {-1, -1} to mark start
-    
+
     vector<vector<ParentInfo>> parent(n + 1, vector<ParentInfo>(2, {-1, -1}));
 
     priority_queue<State, vector<State>, greater<State>> pq;
