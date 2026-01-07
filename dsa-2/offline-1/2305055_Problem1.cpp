@@ -1,4 +1,4 @@
-#include <iostream>
+w#include <iostream>
 #include <vector>
 #include <ctype.h>
 #include <queue>
@@ -77,3 +77,5 @@ int main()
 
 //g++ -std=c++17 solution.cpp -o solution
 //solution < input.txt
+
+//g++ -std=c++17 solution.cpp -o solution && solution < input.txt
