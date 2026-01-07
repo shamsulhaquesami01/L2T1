@@ -6,7 +6,8 @@
 using namespace std;
 const long long INF = 1e18;
 
-// Edge structure
+//Edge struc ture
+
 struct Edge {
     int u, v;
     long long w;
