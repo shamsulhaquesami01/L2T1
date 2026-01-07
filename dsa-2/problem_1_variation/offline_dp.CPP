@@ -50,3 +50,16 @@ vector<vector<int>> dp(n+1, vector<int>(2, INT_MAX));
     return {dp[dest][0], dp[dest][1]} ;
 }
 
+int main() {
+    int n, m;
+    cin >> n >> m;
+    vector<vector<Edge>> adj(n+1);
+   vector<vector<Edge>> rev_adj(n+1);
+    for(int i=0;i<m;i++) {
+        int a,b; int c;
+        cin >> a >> b >> c;
+        adj[a].push_back({b,c});
+        rev_adj[b].push_back({a,c});
+    }
+  
+}
