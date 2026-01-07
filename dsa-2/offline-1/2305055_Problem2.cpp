@@ -104,3 +104,8 @@ int main()
     }
     bellmanFord(1, n, m, edges);
 }
+
+//g++ -std=c++17 solution.cpp -o solution
+//solution < input.txt
+
+//g++ -std=c++17 solution.cpp -o solution && solution < input.txt
