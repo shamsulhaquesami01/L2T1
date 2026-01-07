@@ -74,3 +74,6 @@ int main()
 
     cout << ans << "\n";
 }
+
+//g++ -std=c++17 solution.cpp -o solution
+//solution < input.txt
