@@ -4,7 +4,6 @@
 #include <algorithm>
 
 using namespace std;
-
 const long long INF = 1e18;
 
 // Edge structure
