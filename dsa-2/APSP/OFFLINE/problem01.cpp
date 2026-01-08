@@ -6,11 +6,6 @@
 using namespace std;
 using ll=long long;
 const ll INF = 1e18;
-
-struct Edge{
-    int to;
-    ll weight;
-};
 void solve(){
 
  ll n,m,q;
@@ -40,5 +35,7 @@ for(int i=0; i<q; i++){
 }
 }
 int main(){
-    cout<<"hello"<<endl;
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    solve();
 }
