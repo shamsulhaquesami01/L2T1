@@ -50,6 +50,7 @@ void solve()
     cout<<count<<endl;
     cout<<sum/count<<endl;
 }
+
 int main()
 {
     ios::sync_with_stdio(false);
