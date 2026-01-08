@@ -1,4 +1,4 @@
-w#include <iostream>
+#include <iostream>
 #include <vector>
 #include <ctype.h>
 #include <queue>
