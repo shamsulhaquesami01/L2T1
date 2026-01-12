@@ -40,16 +40,29 @@ int main()
         cin >> a >> b >> w;
         dist[a][b] = min(dist[a][b], w);
     }
+    solve(dist,n);
 
-    int q; cin>>q;
-    for (int i = 0; i < q; i++)
-    {
-        int a, b;
-        cin >> a >> b;
-        if (dist[a][b] != INF)
-            cout << dist[a][b]<<endl;
-        else
-            cout << -1<<endl;
+    // center & radius calculation
+
+    int center =-1;
+    ll radius = INF;
+    for(int i=1; i<=n ; i++){
+        ll eccentricity  = 0;
+        bool reach = true;
+        for(int j=1; j<=n ; j++){
+            if(i==j) continue;
+            if(dist[i][j]==INF){
+                reach = false;
+                break;
+            }
+            eccentricity = max(eccentricity,dist[i][j]);
+        }
+       if(reach){
+         if(eccentricity <radius){
+            radius = eccentricity;
+            center=i;
+         }
+       }
     }
     
 
