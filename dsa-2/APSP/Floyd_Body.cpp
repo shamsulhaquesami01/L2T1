@@ -40,7 +40,7 @@ int main()
         cin >> a >> b >> w;
         dist[a][b] = min(dist[a][b], w);
     }
-
+    solve(dist,n);
     int q; cin>>q;
     for (int i = 0; i < q; i++)
     {

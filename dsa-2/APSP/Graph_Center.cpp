@@ -18,8 +18,7 @@ void solve(vector<vector<ll> >& dist,int n)
             {
                 if (dist[i][k] != INF && dist[k][j] != INF)
                 {
-                    ll path_max = max(dist[i][k] , dist[k][j]);
-                    dist[i][j] = min(dist[i][j], path_max);
+                    dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
                 }
             }
         }
@@ -41,7 +40,7 @@ int main()
         cin >> a >> b >> w;
         dist[a][b] = min(dist[a][b], w);
     }
-    solve(dist,n);
+
     int q; cin>>q;
     for (int i = 0; i < q; i++)
     {
