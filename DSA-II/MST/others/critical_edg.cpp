@@ -36,9 +36,9 @@ class DSU
 public:
     DSU(int n)
     {
-        parent.resize(n);
-        size.resize(n, 1);
-        for (int i = 0; i < n; i++)
+        parent.resize(n+1);
+        size.resize(n+1, 1);
+        for (int i = 1; i <= n; i++)
         {
             parent[i] = i;
         }
@@ -135,6 +135,7 @@ void solveCriticalEdges(int n, vector<Edge> &edges)
         if (cost_without > original_mst_cost)
         {
             critical.push_back(i); // It's critical
+            cout<<"any"<<endl;
         }
         else
         {
@@ -143,8 +144,14 @@ void solveCriticalEdges(int n, vector<Edge> &edges)
             if (cost_forced == original_mst_cost)
             {
                 pseudo_critical.push_back(i);
+                cout<<"at least one"<<endl;
+            }
+            else{
+                cout<<"none"<<endl;
             }
         }
+       
+
     }
 
     cout << "Critical Edges Count: " << critical.size() << endl;
