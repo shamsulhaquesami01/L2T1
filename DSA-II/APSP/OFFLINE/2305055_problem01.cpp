@@ -1,8 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <algorithm>
-#include <climits>
+#include<bits/stdc++.h>
 using namespace std;
 using ll = long long;
 const ll INF = 1e18;
@@ -52,4 +48,4 @@ int main()
     solve();
 }
 
-//g++ -std=c++17 dsa-2/APSP/OFFLINE/problem01.cpp -o solution && ./solution < dsa-2/APSP/OFFLINE/input.txt
+//g++ -std=c++17 DSA-II/APSP/OFFLINE/2305055_problem01.cpp -o solution && ./solution < DSA-II/APSP/OFFLINE/input.txt

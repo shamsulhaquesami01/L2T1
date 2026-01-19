@@ -1,0 +1,4 @@
+Total weight 70
+Root node 1
+1 0
+1 2
