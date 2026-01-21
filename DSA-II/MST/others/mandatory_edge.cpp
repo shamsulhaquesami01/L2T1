@@ -126,6 +126,6 @@ int main()
     }
     int x,y;
     cin >> x,y;
-    KRUSKAL(edges,  n,  x, y,adj);
+    KRUSKAL_mandatory_simple(edges,  n,  x, y,adj);
 }
 

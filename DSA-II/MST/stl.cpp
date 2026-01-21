@@ -2,7 +2,7 @@
  * =========================================================
  * C++ STL & IMPLEMENTATION MASTER REFERENCE
  * Author: Gemini (For Lab Test Prep)
- * * CONTENTS:
+ * * *CONTENTS:
  * 1.  PAIRS & TUPLES (Handling coordinates, edges)
  * 2.  SORTING MASTERY (Lambdas, Structs, Input Order)
  * 3.  PRIORITY QUEUES (Min-Heap, Max-Heap, Custom)
