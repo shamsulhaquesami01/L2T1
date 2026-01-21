@@ -1,7 +1,12 @@
-// k ta connected components wala forest banaite bolse
-// vertice - edge = component shongkha
-// tree te n ta vertex ar ekta component tai
-// n - edge = 1 --> edge = n-1 hoy;
+/*
+A Oruro province wants ALL the towns to have Internet access and to communicate with each other by at least one channel (not necessarily direct). 
+The engineer in charge asks you to help him determine the minimum cost of providing this access.
+There are N towns in total (1 ≤ N ≤ 1000). UTP can be used only up to range R (1 ≤ R ≤ 10000). 
+If this distance is exceeded, optical fiber must be used instead. 
+The unit cost of using UTP cable is U and the unit price of the optical fiber is V (U ≤ V; 1 ≤ U, V ≤ 10).
+ There are also W satellite modems purchased (1 ≤ W < N). These satellite modems can be placed in any town. 
+ Satellite modem will allow a town to use the internet and communicate with any other modem in the provinc
+*/
 
 #include <iostream>
 #include <vector>
@@ -14,7 +19,7 @@ class Edge
 {
 public:
     int from, to;
-    int w;
+    int w; int type;
     bool operator<(const Edge &other) const
     {
         return w < other.w;
@@ -76,27 +81,30 @@ public:
         return size[find(x)];
     }
 };
-
-void KRUSKAL(vector<Edge> &edges, int n,int k)
+int calcdistnace(pair<int,int> A, pair<int,int> B){
+    return abs(sqrt((A.first-B.first)*(A.first-B.first)+(A.second-B.second)*(A.second-B.second)));
+}
+void KRUSKAL(vector<Edge> &edges, int n,int k, int U)
 {
     vector<pair<int, int>> result;
-    int total=0;
+    int total_U=0;
+    int total_V=0;
     int edge_count =0;
     DSU dsu(n);
     sort(edges.begin(), edges.end());
-    for (auto [u, v, w] : edges)
+    for (auto [u, v, w,type] : edges)
     {
         if (dsu.find(u) != dsu.find(v))
         {
             result.push_back({u, v});
-            total+=w;
+            if(type==1) total_U+=w;
+            else total_V +=w;
             dsu.unite(u, v);
             edge_count++;
             if(edge_count ==n-k) break;
         }
     }
-    if(edge_count < n-k) cout<<"insufficient edges"<<endl;
-    cout<<"Total weight "<<total<<endl;
+    cout<<"U "<<total_U<<"V "<<total_V<<endl;
     for (auto [u, v] : result)
     {
         cout << u << " " << v << endl;
@@ -107,17 +115,22 @@ int main()
 {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int n, m;
-    cin >> n >> m;
+    int N,R,W,U,V;
+    cin>>N>>R>>W>>U>>V;
     vector<Edge> edges;
-    for (int i = 0; i < m; i++)
+    vector<pair<int,int> > towns(N);
+    for (int i = 0; i < N; i++)
     {
-        int u, v, w;
-        cin >> u >> v >> w;
-        edges.push_back({u, v, w});
+        int x,y;cin>>x>>y;
+        towns[i]={x,y};
     }
-    int k;
-    cin >> k; // k ta component
-    KRUSKAL(edges, n,k);
+    for(int i =0; i<towns.size(); i++){
+        for(int j =i+1; j<towns.size(); j++){
+            int x = calcdistnace(towns[i],towns[j]);
+            if(x<=R) edges.push_back({i,j,x*U,1});
+            else edges.push_back({i,j,x*V,2});
+        }
+    }
+    KRUSKAL(edges, N, W,U);
 }
 

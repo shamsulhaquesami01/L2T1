@@ -80,7 +80,7 @@ void solve()
         }
     }
 
-    // 4. Output Results
+    // 4. Output Resultsp[]
     int new_roads_needed = component_leaders.size() - 1;
     cout << new_roads_needed << endl;
 

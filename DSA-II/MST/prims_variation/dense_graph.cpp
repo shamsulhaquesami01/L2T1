@@ -1,3 +1,13 @@
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+
+
 void PRIMS_DENSE(int n, vector<pair<int, int>>& coordinates) {
     // dist[i] stores min weight to connect node i to the current tree
     vector<long long> dist(n, LLONG_MAX);
