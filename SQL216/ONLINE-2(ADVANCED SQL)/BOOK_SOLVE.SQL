@@ -191,3 +191,19 @@ FROM EMPLOYEES2
 -- perform this.
 -- b. Find last names of those employees who are not managers. Use minus operator to perform this.
 -- c. Find the LOCATION_ID of those locations having no department
+
+select EMPLOYEE_ID from EMPLOYEES
+MINUS(
+    SELECT MANAGER_ID from EMPLOYEES 
+);
+
+select last_name from EMPLOYEES
+where EMPLOYEE_ID IN (select EMPLOYEE_ID from EMPLOYEES
+MINUS(
+    SELECT MANAGER_ID from EMPLOYEES 
+));
+
+SELECT LOCATION_ID from LOCATIONS
+MINUS(
+    select LOCATION_ID from DEPARTMENTS
+);
