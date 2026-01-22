@@ -187,3 +187,76 @@ order by e.salary desc,d.DEPARTMENT_NAME asc;
 -- employees in that department (based on job history). For each such department, display the
 -- department name and a CASE statement indicating whether the department’s average salary is
 -- ‘Above’ or ‘Below or equal’ to the company average.
+select * from JOB_HISTORY;
+SELECT * from DEPARTMENTS;
+select * from JOBS;
+SELECT * from EMPLOYEES;
+select * from LOCATIONS;
+-- Find employees who are either managers of more than one department (by being the manager of
+-- employees from multiple departments) or who have a salary greater than the average salary of all
+-- employees, or both. Exclude those who work in departments located in 'Seattle'. Additionally,
+-- print a type for each employee as either “Multi-Dept Manager” or “Above Avg Salary” (for
+-- employees satisfying both the criteria, printing either of the types will suffice).
+select e.EMPLOYEE_ID,e.FIRST_NAME from EMPLOYEES e
+where 2 <= (
+    select count(distinct e2.department_id)
+    from employees e2
+    where e2.MANAGER_ID = e.EMPLOYEE_ID
+) OR
+e.SALARY > (SELECT avg(e3.salary) from EMPLOYEES e3 )
+MINUS
+(
+    select distinct e3.EMPLOYEE_ID, e3.FIRST_NAME  from EMPLOYEES e3
+    join DEPARTMENTS d on d.DEPARTMENT_ID=e3.DEPARTMENT_ID
+    join LOCATIONS l on l.LOCATION_ID = d.LOCATION_ID
+    where l.CITY='Seattle'
+);
+
+
+
+SELECT e.employee_id, 
+       e.first_name || ' ' || e.last_name AS fullname,
+       CASE 
+           WHEN (SELECT COUNT(DISTINCT e2.department_id) 
+                 FROM employees e2 
+                 WHERE e2.manager_id = e.employee_id) >= 2 THEN 'Multi-Dept Manager'
+           WHEN e.salary > (SELECT AVG(salary) FROM employees) THEN 'Above Avg Salary'
+       END AS emp_type
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+JOIN locations l ON d.location_id = l.location_id
+WHERE l.city <> 'Seattle' -- Seattle Exclusion
+  AND (
+      -- Condition 1: Multi-Dept Manager
+      (SELECT COUNT(DISTINCT e2.department_id) 
+       FROM employees e2 
+       WHERE e2.manager_id = e.employee_id) >= 2 
+      OR 
+      -- Condition 2: Above Average Salary
+      e.salary > (SELECT AVG(salary) FROM employees)
+  );
+
+
+--   For each department, show the department_name, employee_id, and salary of the highest-paid
+-- employee(s). If a department has no employees, do not include it in the results. Display the output
+-- in descending order of the salary. If two employees have the same salary, prioritize the one whose
+-- department name is lexicographically larger. If there still exists a tie, prioritize the employee with lower employee_id.
+
+select * from JOB_HISTORY;
+SELECT * from DEPARTMENTS;
+select * from JOBS;
+SELECT * from EMPLOYEES;
+select * from LOCATIONS;
+
+select department_name,employee_id,salary 
+from DEPARTMENTS d
+join EMPLOYEES e on d.DEPARTMENT_ID=e.DEPARTMENT_ID
+where  e.SALARY> ANY(
+    select salary from EMPLOYEES e2 where e2.DEPARTMENT_ID = e.DEPARTMENT_ID
+) AND 1 <= 
+(select count(distinct e3.employee_id) 
+from Employees e3 
+where e3.DEPARTMENT_ID = e.DEPARTMENT_ID
+)
+order by e.salary asc,d.DEPARTMENT_NAME desc,e.EMPLOYEE_ID asc;
+
