@@ -262,13 +262,6 @@ order by e.salary asc,d.DEPARTMENT_NAME desc,e.EMPLOYEE_ID asc;
 -- salary is ’Above’ or ‘Below or equal to’ the company average.
 
 
-select * from JOB_HISTORY;
-SELECT * from DEPARTMENTS;
-select * from JOBS;
-select * from JOB_HISTORY;
-SELECT * from EMPLOYEES;
-select * from LOCATIONS;
-
 select department_name, count(DISTINCT e.EMPLOYEE_ID) as NUM_EMPLYES,
 case
     when avg(e.SALARY) > (SELECT AVG(salary) FROM employees) THEN 'Above Company Average'
@@ -300,11 +293,63 @@ where 2>= (select count(e2.employee_id)
  e.JOB_ID <> ANY(
     select e3.JOB_ID
  from EMPLOYEES e3
- );
+ ) AND 'Steven' <> (select e5.first_name from EMPLOYEES e5 where e5.EMPLOYEE_ID=e.MANAGER_ID);
 
- 
+
 
 -- List the department_name, city, and country_name for departments that have no employees hired
 -- before July 1, 2000, have a manager, and the manager’s job is not titled 'Stock Manager'. Display
 -- only departments that have at least one employee in ascending order of country and descending
 -- order of city. If there still exists a tie, display the lexicographically smaller department_name first.
+
+select distinct d.department_name,l.city,c.country_name
+from DEPARTMENTS d
+join LOCATIONS l on d.LOCATION_ID=l.LOCATION_ID
+join COUNTRIES c on c.COUNTRY_ID =l.COUNTRY_ID
+join EMPLOYEES e on e.department_id=d.department_id
+where e.hire_date >='01-JULY-2000' and
+e.manager_id is not null and e.EMPLOYEE_ID is not null
+order by c.country_name asc,l.city desc, d.department_name asc;
+
+
+select * from JOB_HISTORY;
+SELECT * from DEPARTMENTS;
+select * from JOBS;
+select * from JOB_HISTORY;
+SELECT * from EMPLOYEES;
+select * from LOCATIONS;
+
+-- Find all employees who have a job title with a minimum salary greater than the average minimum
+-- salary of all jobs, and work in departments that have more than 5 employees.
+
+select employee_id,first_name, last_name,e.job_id,min_salary,department_name
+from jobs j
+join employees e on e.JOB_ID =j.JOB_ID 
+join departments d on e.department_id = d.DEPARTMENT_ID
+where 
+ 5 <= (
+    select count(e2.employee_id) from EMPLOYEES e2 where e2.DEPARTMENT_ID=e.DEPARTMENT_ID
+) and
+j.MIN_SALARY > (
+    select avg(j2.min_salary) from jobs j2
+) ;
+
+
+-- For each department, calculate its total salary expense. Categorize this expense as 'Low' (total
+-- salary ≤ 15000), 'Medium' (total salary > 15000 and ≤ 50000), 'High' (total salary > 50000 and ≤
+-- 100000), or 'Very High' (total salary > 100000). Display department_name, total_salary_expense,
+-- and expense_category in descending order of the total salary expense and ascending order of
+-- department_name. Include departments with no employees (their total expense should be 0 and
+-- categorized as 'Low').
+
+select department_name, sum(salary) as total_expense,
+case
+    when sum(salary) <=15000 then 'Low'
+    when sum(salary) between 15001 and 50000 then 'Medium'
+    when sum(salary) between 50001 and 100000 then 'High'
+    else 'Very High'
+
+end as expense_category
+from DEPARTMENTS d
+join EMPLOYEES e on e.DEPARTMENT_ID=d.DEPARTMENT_ID
+group by d.DEPARTMENT_ID,d.DEPARTMENT_NAME;
