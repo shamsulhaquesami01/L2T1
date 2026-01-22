@@ -242,12 +242,6 @@ WHERE l.city <> 'Seattle' -- Seattle Exclusion
 -- in descending order of the salary. If two employees have the same salary, prioritize the one whose
 -- department name is lexicographically larger. If there still exists a tie, prioritize the employee with lower employee_id.
 
-select * from JOB_HISTORY;
-SELECT * from DEPARTMENTS;
-select * from JOBS;
-SELECT * from EMPLOYEES;
-select * from LOCATIONS;
-
 select department_name,employee_id,salary 
 from DEPARTMENTS d
 join EMPLOYEES e on d.DEPARTMENT_ID=e.DEPARTMENT_ID
@@ -260,3 +254,57 @@ where e3.DEPARTMENT_ID = e.DEPARTMENT_ID
 )
 order by e.salary asc,d.DEPARTMENT_NAME desc,e.EMPLOYEE_ID asc;
 
+
+--------------
+
+-- List departments where every employee has at least one job change, and display the department
+-- name and the number of employees. Use a CASE statement to show if the department’s average
+-- salary is ’Above’ or ‘Below or equal to’ the company average.
+
+
+select * from JOB_HISTORY;
+SELECT * from DEPARTMENTS;
+select * from JOBS;
+select * from JOB_HISTORY;
+SELECT * from EMPLOYEES;
+select * from LOCATIONS;
+
+select department_name, count(DISTINCT e.EMPLOYEE_ID) as NUM_EMPLYES,
+case
+    when avg(e.SALARY) > (SELECT AVG(salary) FROM employees) THEN 'Above Company Average'
+    ELSE 'Below or Equal to Company Average'
+end as status
+from EMPLOYEES e 
+join JOB_HISTORY j on j.EMPLOYEE_ID=e.EMPLOYEE_ID
+join DEPARTMENTS d on d.DEPARTMENT_ID=e.DEPARTMENT_ID
+where e.JOB_ID <> j.JOB_ID
+group by department_name;
+
+-- Find employees who are either among the top 3 highest-earning employees in their department or
+-- have a job title not held by anyone else in their department, or both. Exclude those who work in a
+-- department with a manager whose first name is 'Steven'. Additionally, print a type for each
+-- employee as either “Top 3 Salary” or “Unique Job” (for employees satisfying both the criteria,
+-- printing either of the types will suffice).
+
+select employee_id,first_name,last_name,
+case
+   when 2>= (select count(e2.employee_id) from EMPLOYEES e2 where e2.SALARY > e.SALARY)
+   then 'Top 3 Salary'
+   else 'Unique Job'  
+end as TYPE
+ from EMPLOYEES e
+where 2>= (select count(e2.employee_id)
+ from EMPLOYEES e2
+ where e2.SALARY > e.SALARY
+ ) OR
+ e.JOB_ID <> ANY(
+    select e3.JOB_ID
+ from EMPLOYEES e3
+ );
+
+ 
+
+-- List the department_name, city, and country_name for departments that have no employees hired
+-- before July 1, 2000, have a manager, and the manager’s job is not titled 'Stock Manager'. Display
+-- only departments that have at least one employee in ascending order of country and descending
+-- order of city. If there still exists a tie, display the lexicographically smaller department_name first.
