@@ -136,3 +136,58 @@ GROUP BY DEPARTMENT_ID
 ) D
 WHERE (E.DEPARTMENT_ID = D.DEPT)
 ORDER BY E.SALARY ;
+
+
+
+
+------------------------- CHAPTER 07 (SET OPTN)------------------------
+SELECT EMPLOYEE_ID,JOB_ID
+FROM EMPLOYEES
+UNION(
+    SELECT EMPLOYEE_ID, JOB_ID
+    FROM JOB_HISTORY
+);
+
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM EMPLOYEES
+UNION ALL                   -- NOMRALLY set opn duplicate shoraye dey
+(
+SELECT EMPLOYEE_ID, JOB_ID
+FROM JOB_HISTORY
+) ;
+
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM EMPLOYEES
+INTERSECT
+(
+SELECT EMPLOYEE_ID, JOB_ID
+FROM JOB_HISTORY
+) ;
+
+
+--The following query finds the employees who have not changed their jobs even once
+SELECT EMPLOYEE_ID, JOB_ID
+FROM EMPLOYEES
+MINUS
+(
+SELECT EMPLOYEE_ID, JOB_ID  -- minus maane holo second tay thakle baaad, ekhane job history te karor naam thaka mane age onno job e chilo
+FROM JOB_HISTORY
+) ;
+
+
+SELECT LAST_NAME, JOB_ID, SALARY
+FROM EMPLOYEES
+UNION ALL
+(
+SELECT LAST_NAME, JOB_ID, SALARY
+FROM EMPLOYEES2
+) ;
+
+---practise 7.1
+
+-- a. Find EMPLOYEE_ID of those employees who are not managers. Use minus operator to
+-- perform this.
+-- b. Find last names of those employees who are not managers. Use minus operator to perform this.
+-- c. Find the LOCATION_ID of those locations having no department
