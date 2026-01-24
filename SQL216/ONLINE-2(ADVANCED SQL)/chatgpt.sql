@@ -107,4 +107,109 @@ end as label
 -- 	•	the minimum salary in their department
 -- 	•	but not the minimum salary in the company
 
+select e.employee_id from EMPLOYEES e
+where e.SALARY < all(
+  select e2.salary from EMPLOYEES e2
+  where e2.DEPARTMENT_ID=e.DEPARTMENT_ID and e.EMPLOYEE_ID <> e2.EMPLOYEE_ID
+) AND NOT e.SALARY < all(
+     select e3.salary from EMPLOYEES e3 where e.EMPLOYEE_ID <> e3.EMPLOYEE_ID
+);
 
+select e.employee_id from EMPLOYEES e
+where e.SALARY < all(
+  select e2.salary from EMPLOYEES e2
+  where e2.DEPARTMENT_ID=e.DEPARTMENT_ID and e.EMPLOYEE_ID <> e2.EMPLOYEE_ID
+) AND NOT e.SALARY < all(
+     select e3.salary from EMPLOYEES e3 where e.EMPLOYEE_ID <> e3.EMPLOYEE_ID
+);
+
+-- Employees who:
+-- 	•	never appeared in JOB_HISTORY
+-- 	•	and have commission
+
+-- 👉 Solve once with NOT IN, once with NOT EXISTS
+select * from Employees e
+where e.COMMISSION_PCT is not NULL
+AND e.employee_id not in (
+    select employee_id from JOB_HISTORY
+);
+
+select * from Employees e
+where e.COMMISSION_PCT is not NULL
+AND not EXISTS(
+    select j.EMPLOYEE_ID from JOB_HISTORY j
+    where e.EMPLOYEE_ID=j.employee_id
+);
+
+select * from Employees e
+where e.COMMISSION_PCT is not NULL
+AND 0= (
+    select count(j.EMPLOYEE_ID) from JOB_HISTORY j
+    where e.EMPLOYEE_ID=j.employee_id
+);
+
+
+-- Practice 12
+
+-- Managers whose:
+-- 	•	average subordinate salary > company avg
+
+-- Display manager name + avg subordinate salary
+select first_name , (select avg(e2.salary) from employees e2
+    where e2.MANAGER_ID= m.EMPLOYEE_ID) as avg_sbordnt_salary
+from employees m 
+where (
+    select avg(e2.salary) from employees e2
+    where e2.MANAGER_ID= m.EMPLOYEE_ID
+) > (
+    select avg(e3.salary) from employees e3
+);
+
+-- case
+-- when (select avg(e2.salary) from employees e2
+--     where e2.MANAGER_ID= m.EMPLOYEE_ID) is not null then (select avg(e2.salary) from employees e2
+--     where e2.MANAGER_ID= m.EMPLOYEE_ID)
+-- else (select avg(e2.salary) from employees e2
+--     where e2.MANAGER_ID= m.EMPLOYEE_ID)
+-- end 
+-- 9️⃣ Complex OR with Aggregates (Real Exam Difficulty)
+
+
+-- Employees who:
+-- 	•	are in departments with avg salary > company avg
+-- 	•	OR have a job where max salary > 20000
+-- 	•	BUT NOT both
+
+-- (XOR again 🔥)
+
+
+
+select * from EMPLOYEES e
+where ((
+    select avg(salary) from EMPLOYEES
+    where e.DEPARTMENT_ID=DEPARTMENT_ID
+)>(
+    select avg(salary) from EMPLOYEES
+) OR 20000<(
+    select max_salary from jobs
+    where job_id=e.JOB_ID
+)) AND NOT(
+    (
+    select avg(salary) from EMPLOYEES
+    where e.DEPARTMENT_ID=DEPARTMENT_ID
+)>(
+    select avg(salary) from EMPLOYEES
+) AND 20000<(
+    select max_salary from jobs
+    where job_id=e.JOB_ID
+)
+);
+
+-- Practice 14
+
+-- Employees who:
+-- 	•	work in departments located in Toronto, Oxford, or Seattle
+-- 	•	AND whose department has at least one employee earning less than dept avg
+
+select * from employees e
+where (select )

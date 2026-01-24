@@ -91,7 +91,6 @@ run_tests() {
 # ================= MAIN EXECUTION =================
 
 # --- PROBLEM 1 CONFIGURATION ---
-# Uses check_flow.py because flows can vary
 run_tests "Problem 1 (Max Flow)" \
           "PRBLM1.cpp" \
           "prblm1" \
@@ -99,14 +98,13 @@ run_tests "Problem 1 (Max Flow)" \
           "Test_Cases/Problem 1/Outputs" \
           "check_flow.py"
 
-# --- PROBLEM 2 CONFIGURATION ---
-# Uses standard diff because Bipartite Matching pairs usually 
-# expect specific output or exact counts.
+# --- PROBLEM 2 CONFIGURATION (UPDATED) ---
+# Now uses check_matching.py to handle different valid pairs
 run_tests "Problem 2 (Bipartite)" \
           "PRBLM2.cpp" \
           "prblm2" \
           "Test_Cases/Problem 2/Inputs" \
           "Test_Cases/Problem 2/Outputs" \
-          "" # No python checker for Problem 2
+          "check_matching.py"
 
 echo -e "${BLUE}All tests finished.${NC}"
