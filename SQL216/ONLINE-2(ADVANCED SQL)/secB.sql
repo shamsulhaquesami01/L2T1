@@ -4,7 +4,7 @@
 select distinct e2.FIRST_NAME||' '||e2.last_name as fullname from DEPARTMENTS d
 join locations l on l.LOCATION_ID = d.LOCATION_ID
 join EMPLOYEES e2 on e2.EMPLOYEE_ID=d.MANAGER_ID
-where l.CITY = 'Toronto' OR l.CITY = 'Oxford' AND
+where (l.CITY = 'Toronto' OR l.CITY = 'Oxford') AND
 (select avg(e3.salary) from EMPLOYEES e3
 where e3.DEPARTMENT_ID=d.DEPARTMENT_ID
 )> (select avg(e4.salary) from EMPLOYEES e4);
@@ -66,13 +66,13 @@ where 5 < (
 
 select e.employee_id,e.FIRST_NAME||' '||e.LAST_NAME as fullname,
 e.department_id,e.job_id,e.salary from employees e 
-where 5 < (
+where ( 5 < (
     select count(distinct e2.employee_id )from employees e2
     where e2.department_id=e.department_id
 ) OR 10000<(
     select MIN_SALARY  from jobs j
     where j.JOB_ID=e.JOB_ID
-) AND NOT (
+)) AND NOT (
     5 < (
     select count(distinct e2.employee_id )from employees e2
     where e2.department_id=e.department_id
