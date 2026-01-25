@@ -1,3 +1,62 @@
+-- f. For each employee, finds the total number of employees those were hired before him/her. Print
+-- employee last name and total employees.
+-- g. For each employee, finds the total number of employees those were hired before him/her and
+-- those were hired after him/her. Print employee last name, total employees hired before him,
+-- and total employees hired after him.
+-- h. Find the employees having salaries greater than at least three other employees
+-- i. For each employee, find his rank, i.e., position with respect to salary. The highest salaried
+-- employee should get rank 1 and lowest salaried employee should get the last rank. Employees
+-- with same salary should get same rank value. Print employee last names and his/he rank.
+-- j. Finds the names of employees and their salaries for the top three highest salaried employees.
+-- The number of employees in your output should be more than three if there are employees with
+-- same salary
+
+
+select e.last_name,(
+    select count(*) from EMPLOYEES e2
+    where e2.HIRE_DATE < e.hire_date
+)as total from EMPLOYEES e;
+
+
+select e.last_name,(
+    select count(*) from EMPLOYEES e2
+    where e2.HIRE_DATE < e.hire_date
+)as total_before,(
+   select count(*) from EMPLOYEES e2
+    where e2.HIRE_DATE > e.hire_date
+
+) as total_after from EMPLOYEES e;
+
+
+select * from EMPLOYEES e
+where 3 <= (
+select count(*) from EMPLOYEES e2
+where e2.SALARY<e.salary
+);
+
+
+select last_name,
+       rank() over (order by salary desc) as salary_rank
+from employees;
+
+select e.last_name,
+       (
+         select count( e2.salary)
+         from employees e2
+         where e2.salary > e.salary
+       ) + 1 as salary_rank
+from employees e
+order by salary_rank;
+
+
+select e.last_name,e.salary from EMPLOYEES e
+where 2 >=(
+    select count(distinct e2.salary) from EMPLOYEES e2
+    where e2.SALARY > e.SALARY
+);
+
+
+
 -----------------CHAPTER 06 (SUB QUERY)-------------------
 
 SELECT LAST_NAME, SALARY
@@ -207,3 +266,6 @@ SELECT LOCATION_ID from LOCATIONS
 MINUS(
     select LOCATION_ID from DEPARTMENTS
 );
+
+
+
