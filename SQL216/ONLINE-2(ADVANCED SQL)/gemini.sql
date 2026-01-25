@@ -55,3 +55,41 @@ join LOCATIONS l on l.LOCATION_ID=d.LOCATION_ID;
 -- 'Balanced' if the department average is within +/- $1,000 of the global company average.
 
 -- 'Under Review' for all other departments. Sort by DEPARTMENT_NAME ascending
+
+select d.department_name,
+case 
+when 1 <= (
+    select count(e.employee_id) from employees e
+    where e.DEPARTMENT_ID=d.DEPARTMENT_ID and e.salary > 15000
+) then 'Elite' 
+when 
+(select avg(e.salary) from EMPLOYEES e where e.DEPARTMENT_ID=d.DEPARTMENT_ID) >= 
+(select avg(e2.salary) from EMPLOYEES e2)-1000 AND
+(select avg(e.salary) from EMPLOYEES e where e.DEPARTMENT_ID=d.DEPARTMENT_ID) <= 
+(select avg(e2.salary) from EMPLOYEES e2)+1000
+then 'Balanced'
+else 'Under Review'
+end as status
+from departments d
+order by d.DEPARTMENT_NAME;
+
+-- Find managers who manage at least 3 employees, 
+-- where every employee reporting to them earns more than the average salary 
+-- of the department the manager works in.
+--  Display MANAGER_ID and the COUNT of such employees.
+select d.MANAGER_ID ,
+(
+    select count(*) from EMPLOYEES e
+    where e.MANAGER_ID=d.MANAGER_ID and e.SALARY >(
+        select avg(e2.salary) from employees e2
+        where e2.DEPARTMENT_ID=d.DEPARTMENT_ID
+    )
+) as count_emp
+from departments d
+where 3 <=(
+    select count(*) from EMPLOYEES e
+    where e.MANAGER_ID=d.MANAGER_ID and e.SALARY >(
+        select avg(e2.salary) from employees e2
+        where e2.DEPARTMENT_ID=d.DEPARTMENT_ID
+    )
+);

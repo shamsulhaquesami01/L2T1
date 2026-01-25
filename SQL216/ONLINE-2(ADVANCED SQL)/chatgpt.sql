@@ -1,6 +1,6 @@
--- •	Employees who satisfy exactly one:
-	-- •	dept has ≥ 4 employees
-	-- •	salary > department average
+    -- •Employees who satisfy exactly one:
+	-- •dept has ≥ 4 employees
+	-- •salary > department average
 
 select *
   from employees e
@@ -208,8 +208,6 @@ where ((
 -- Practice 14
 
 -- Employees who:
--- 	•	work in departments located in Toronto, Oxford, or Seattle
--- 	•	AND whose department has at least one employee earning less than dept avg
+-- work in departments located in Toronto, Oxford, or Seattle
+-- AND whose department has at least one employee earning less than dept avg
 
-select * from employees e
-where (select )
