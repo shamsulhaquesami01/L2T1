@@ -1,6 +1,3 @@
-
-
-
 -- 1. Find employees earning above their department's average salary in departments with more than 4
 -- employees.
 

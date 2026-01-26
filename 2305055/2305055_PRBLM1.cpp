@@ -101,7 +101,7 @@ int main()
     if (!(cin >> N >> M))
         return 0;
 
-    MaxFlow mf(N);
+    MaxFlow mf(N+1);
     vector<tuple<int, int, int, int>> edges;
 
     for (int i = 0; i < M; i++)
