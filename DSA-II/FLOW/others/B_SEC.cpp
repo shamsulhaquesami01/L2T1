@@ -102,6 +102,7 @@ int main() {
         cin>>u>>v>>c;
         inputs.push_back({u,v});
     }
+    
     vector<bool> visited(n + 1, false);
     queue<int> q;
     q.push(1);
