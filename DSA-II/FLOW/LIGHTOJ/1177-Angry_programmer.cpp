@@ -1,13 +1,15 @@
-// You, a programmer of an important software house, have been fired because you didn't solve an important problem that was assigned to you. You are very furious and want to take revenge on your boss, breaking the communication between his computer and the central server.
-
-// The computer of your boss and the central server are in the same network, which is composed of many machines (computers) and wires linking pairs of those machines. There is at most one wire between any pair of machines and there can be pairs of machines without a wire between them.
-
-// To accomplish your objective, you can destroy machines and wires, but you can't destroy neither the computer of your boss, nor the central server, because those machines are monitored by security cameras. You have estimated the cost of blowing up each machine and the cost of cutting each wire in the network.
-
-// You want to determine the minimum cost of interrupting the communication between your boss' computer and the central server. Two computers A and B can communicate if there is a sequence of undestroyed machines x1, x2, ..., xn such that x1 = A, xn = B and xi is linked with xi+1 with an uncut wire (for each 1 ≤ i < n
-
-
-
+// You, a programmer of an important software house, have been fired because you didn't solve an important problem that was assigned to you. 
+// You are very furious and want to take revenge on your boss, breaking the communication between his computer and the central server.
+// The computer of your boss and the central server are in the same network, 
+// which is composed of many machines (computers) and wires linking pairs of those machines. 
+// There is at most one wire between any pair of machines and there can be pairs of machines without a wire between them.
+// To accomplish your objective, you can destroy machines and wires, 
+// but you can't destroy neither the computer of your boss, nor the central server, 
+// because those machines are monitored by security cameras. You have estimated the cost of blowing up each machine and 
+// the cost of cutting each wire in the network.
+// You want to determine the minimum cost of interrupting the communication between your boss'
+//  computer and the central server. Two computers A and B can communicate if there is a sequence 
+//  of undestroyed machines x1, x2, ..., xn such that x1 = A, xn = B and xi is linked with xi+1 with an uncut wire (for each 1 ≤ i < n)
 
 #include <iostream>
 #include <vector>

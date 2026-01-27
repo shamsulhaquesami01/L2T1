@@ -1,4 +1,3 @@
-// NORMAL FLOW  TE MIN CUT BER KORA
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -7,22 +6,19 @@
 #include <algorithm>
 
 using namespace std;
-
-// --- TEMPLATE START ---
-struct Edge {
-    int to;
-    int capacity;
-    int flow;
-    int rev;
+struct position{
+    int x,y,idx;
 };
-
+double calcDistance(position a, position b){
+    return sqrt(abs(pow(a.x-b.x,2)+pow(a.y-b.y,2)));
+}
+// --- TEMPLATE ---
+struct Edge { int to, capacity, flow, rev; };
 class MaxFlow {
 public:
     int N;
     vector<vector<Edge>> graph;
-
     MaxFlow(int n) : N(n), graph(n) {}
-
     int addEdge(int u, int v, int cap) {
         Edge a = {v, cap, 0, (int)graph[v].size()};
         Edge b = {u, 0, 0, (int)graph[u].size()};
@@ -30,13 +26,10 @@ public:
         graph[v].push_back(b);
         return (int)graph[u].size() - 1;
     }
-
     int bfs(int s, int t, vector<pair<int,int>>& parent) {
         fill(parent.begin(), parent.end(), make_pair(-1, -1));
         queue<int> q;
-        q.push(s);
-        parent[s] = {s, -1};
-
+        q.push(s); parent[s] = {s, -1};
         while (!q.empty()) {
             int u = q.front(); q.pop();
             for (int i = 0; i < graph[u].size(); i++) {
@@ -50,9 +43,8 @@ public:
         }
         return 0;
     }
-
-    long long edmondsKarp(int s, int t) {
-        long long maxFlow = 0;
+    int edmondsKarp(int s, int t) {
+        int maxFlow = 0;
         vector<pair<int,int>> parent(N);
         while (bfs(s, t, parent)) {
             int pathFlow = INT_MAX;
@@ -79,51 +71,43 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int n, m;
-    cin >> n >> m;
+    int mice, holes;
+    double dist;
+    if (cin >> mice >> holes>>dist) {
+        
+        
+        int S = 0;
+        int T = mice + holes + 1;
+        MaxFlow mf(T + 1);
 
-    MaxFlow mf(n + 1);
-    // Store original edges to print later
-    struct InputEdge { int u, v; };
-    vector<InputEdge> inputs;
+        // 2. Connect Source -> Boys
+        vector<position> mice_pos;
+        vector<position>hole_pos;
+        for(int i=1; i<=mice; i++) {
+            int x,y; cin>>x>>y;
+            mice_pos.push_back({x,y,i});
+            mf.addEdge(S, i, 1);
+        }
 
-    for (int i = 0; i < m; i++) {
-        int u, v,c;
-        cin >> u >> v>>c;
-        mf.addEdge(u, v, c);
-    }
-    int  x ; cin>>x;
-    while(x--){
-        int u,v,c;
-        cin>>u>>v>>c;
-        inputs.push_back({u,v});
-    }
+        // 3. Connect Girls -> Sink
+        for(int i=1; i<=holes; i++) {
+             int x,y,c; cin>>x>>y>>c;
+            hole_pos.push_back({x,y,i});
+            mf.addEdge(mice + i, T, c);
+        }
 
-    vector<bool> visited(n + 1, false);
-    queue<int> q;
-    q.push(1);
-    visited[1] = true;
+        vector<pair<int, int>> potential_matches; 
 
-    while(!q.empty()){
-        int u = q.front(); q.pop();
-        for(auto &e : mf.graph[u]){
-            // If there is remaining capacity, we can visit
-            if(!visited[e.to] && e.capacity > e.flow){
-                visited[e.to] = true;
-                q.push(e.to);
+        for(position idur:mice_pos){
+            for(position gorto:hole_pos){
+                if(calcDistance(idur,gorto)<=dist){
+                    mf.addEdge(idur.idx,gorto.idx+mice,1);
+                }
             }
         }
-    }
+        // 5. Compute Max Matching
+        cout << mf.edmondsKarp(S, T) << endl;
 
-    // 3. Print edges between Reachable (Visited) and Unreachable (Not Visited)
-    int idx=1;
-    for( auto[u,v]:inputs){
-        if(visited[u] && !visited[v] || visited[v] && !visited[u]){
-           cout<<idx<<endl;
-        
-        }
-        idx++;
     }
-
     return 0;
 }

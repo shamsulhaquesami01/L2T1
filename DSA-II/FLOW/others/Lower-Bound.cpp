@@ -88,11 +88,11 @@ void solve() {
     // Let's use 0-based indexing for internal logic
     // Nodes 0..n-1 are original nodes.
     // SS = n, TT = n + 1
-    int SS = n;
+    int SS = 0;
     int TT = n + 1;
 
     MaxFlow mf(n + 2);
-    vector<long long> demand(n, 0);
+    vector<long long> demand(n+1, 0);
     vector<InputEdge> input_edges;
 
     // 1. Read Edges and Transform Constraints
@@ -105,7 +105,6 @@ void solve() {
         // Let's assume standard CP format 1..N often, but your previous code used 0-based.
         // Wait, the Problem image says "Line 1: N M", typical for 1-based graphs.
         // Let's assume 1-based for safety and adjust.
-        u--; v--; 
 
         // Add edge with capacity (c - l)
         int idx = mf.addEdge(u, v, c - l);
@@ -120,7 +119,6 @@ void solve() {
 
     int s, t;
     cin >> s >> t;
-    s--; t--;
 
     // 2. Setup Super Source and Super Sink based on Demands
     long long total_demand_needed = 0;

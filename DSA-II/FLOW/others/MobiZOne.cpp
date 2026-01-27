@@ -1,4 +1,3 @@
-// NORMAL FLOW  TE MIN CUT BER KORA
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -8,7 +7,7 @@
 
 using namespace std;
 
-// --- TEMPLATE START ---
+// --- YOUR STANDARD TEMPLATE START ---
 struct Edge {
     int to;
     int capacity;
@@ -51,8 +50,8 @@ public:
         return 0;
     }
 
-    long long edmondsKarp(int s, int t) {
-        long long maxFlow = 0;
+    int edmondsKarp(int s, int t) {
+        int maxFlow = 0;
         vector<pair<int,int>> parent(N);
         while (bfs(s, t, parent)) {
             int pathFlow = INT_MAX;
@@ -75,55 +74,56 @@ public:
 };
 // --- TEMPLATE END ---
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+void solve() {
+    int N;
+    if (!(cin >> N)) return;
 
-    int n, m;
-    cin >> n >> m;
+    // Reading costs
+    vector<int> M_cost(N);
+    vector<int> V_cost(N);
+    for(int i = 0; i < N; i++) cin >> M_cost[i];
+    for(int i = 0; i < N; i++) cin >> V_cost[i];
 
-    MaxFlow mf(n + 1);
-    // Store original edges to print later
-    struct InputEdge { int u, v; };
-    vector<InputEdge> inputs;
+    // Nodes: S=0, People=1..N, T=N+1
+    int S = 0;
+    int T = N + 1;
+    MaxFlow mf(T + 1);
 
-    for (int i = 0; i < m; i++) {
-        int u, v,c;
-        cin >> u >> v>>c;
-        mf.addEdge(u, v, c);
+    // 1. Build Source/Sink connections
+    for(int i = 0; i < N; i++) {
+        // Edge S -> i with Capacity V_cost[i]
+        // (Cutting this means i is disconnected from Source, so i picks VinaGone, pay V_cost)
+        mf.addEdge(S, i + 1, V_cost[i]);
+
+        // Edge i -> T with Capacity M_cost[i]
+        // (Cutting this means i is disconnected from Sink, so i picks MobiZone, pay M_cost)
+        mf.addEdge(i + 1, T, M_cost[i]);
     }
-    int  x ; cin>>x;
-    while(x--){
-        int u,v,c;
-        cin>>u>>v>>c;
-        inputs.push_back({u,v});
-    }
 
-    vector<bool> visited(n + 1, false);
-    queue<int> q;
-    q.push(1);
-    visited[1] = true;
-
-    while(!q.empty()){
-        int u = q.front(); q.pop();
-        for(auto &e : mf.graph[u]){
-            // If there is remaining capacity, we can visit
-            if(!visited[e.to] && e.capacity > e.flow){
-                visited[e.to] = true;
-                q.push(e.to);
+    // 2. Build Penalty connections (C_ij)
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            int c;
+            cin >> c;
+            // Since matrix is symmetric and Cii = 0, we can just add edges for i < j
+            // Or add all, capacity doesn't double count if we cut correctly.
+            // Usually, we add undirected edge capacity C.
+            // In MaxFlow graph, undirected capacity C is represented as:
+            // i -> j cap C AND j -> i cap C.
+            if(i < j && c > 0) {
+                mf.addEdge(i + 1, j + 1, c);
+                mf.addEdge(j + 1, i + 1, c);
             }
         }
     }
 
-    // 3. Print edges between Reachable (Visited) and Unreachable (Not Visited)
-    int idx=1;
-    for( auto[u,v]:inputs){
-        if(visited[u] && !visited[v] || visited[v] && !visited[u]){
-           cout<<idx<<endl;
-        
-        }
-        idx++;
-    }
+    // Min Cost = Max Flow
+    cout << mf.edmondsKarp(S, T) << endl;
+}
 
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    solve();
     return 0;
 }
