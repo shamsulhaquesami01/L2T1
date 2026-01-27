@@ -1,21 +1,29 @@
-
-
 #include <iostream>
 #include <vector>
 #include <queue>
 #include <tuple>
 #include <climits>
 #include <algorithm>
+#include <map>
+#include <string>
 
 using namespace std;
 
-// --- TEMPLATE ---
-struct Edge { int to, capacity, flow, rev; };
+// --- STANDARD MAXFLOW TEMPLATE ---
+struct Edge {
+    int to;
+    int capacity;
+    int flow;
+    int rev;
+};
+
 class MaxFlow {
+public:
     int N;
     vector<vector<Edge>> graph;
-public:
+
     MaxFlow(int n) : N(n), graph(n) {}
+
     int addEdge(int u, int v, int cap) {
         Edge a = {v, cap, 0, (int)graph[v].size()};
         Edge b = {u, 0, 0, (int)graph[u].size()};
@@ -23,10 +31,13 @@ public:
         graph[v].push_back(b);
         return (int)graph[u].size() - 1;
     }
+
     int bfs(int s, int t, vector<pair<int,int>>& parent) {
         fill(parent.begin(), parent.end(), make_pair(-1, -1));
         queue<int> q;
-        q.push(s); parent[s] = {s, -1};
+        q.push(s);
+        parent[s] = {s, -1};
+
         while (!q.empty()) {
             int u = q.front(); q.pop();
             for (int i = 0; i < graph[u].size(); i++) {
@@ -40,6 +51,7 @@ public:
         }
         return 0;
     }
+
     int edmondsKarp(int s, int t) {
         int maxFlow = 0;
         vector<pair<int,int>> parent(N);
@@ -62,41 +74,72 @@ public:
         return maxFlow;
     }
 };
-int sizeToId(string s) {
-    if(s == "XXL") return 1; if(s == "XL") return 2; if(s == "L") return 3;
-    if(s == "M") return 4; if(s == "S") return 5; if(s == "XS") return 6;
+
+// Helper to map string sizes to integer IDs (1 to 6)
+int getSizeID(string s) {
+    if (s == "XXL") return 1;
+    if (s == "XL") return 2;
+    if (s == "L") return 3;
+    if (s == "M") return 4;
+    if (s == "S") return 5;
+    if (s == "XS") return 6;
     return 0;
 }
 
 void solve(int t) {
-    int N, M; // N shirts (multiple of 6), M contestants
+    int N, M; // N = shirts per size (capacity), M = number of contestants
     cin >> N >> M;
+
+    // Node Mapping:
+    // Source = 0
+    // Contestants = 1 to M
+    // Sizes = M+1 to M+6
+    // Sink = M+7
     
-    // Nodes: S(0), Contestants(1..M), Sizes(M+1..M+6), T(M+7)
-    int S = 0, T = M + 7;
+    int S = 0;
+    int T = M + 7;
     MaxFlow mf(T + 1);
-    
-    int limit_per_size = N / 6;
 
-    // Sizes to Sink
-    for(int i=1; i<=6; i++) mf.addEdge(M+i, T, limit_per_size);
-
-    for(int i=1; i<=M; i++) {
-        string s1, s2;
-        cin >> s1 >> s2;
-        mf.addEdge(S, i, 1); // Contestant needs 1 shirt
-        mf.addEdge(i, M + sizeToId(s1), 1);
-        mf.addEdge(i, M + sizeToId(s2), 1);
+    // 1. Connect Source to Contestants
+    for(int i = 1; i <= M; i++) {
+        mf.addEdge(S, i, 1);
     }
 
-    if(mf.edmondsKarp(S, T) == M) cout << "Case " << t << ": YES" << endl;
-    else cout << "Case " << t << ": NO" << endl;
+    // 2. Connect Contestants to Preferred Sizes
+    for(int i = 1; i <= M; i++) {
+        string s1, s2;
+        cin >> s1 >> s2;
+        int size1 = getSizeID(s1);
+        int size2 = getSizeID(s2);
+
+        // Contestant i -> SizeNode (Offset by M)
+        mf.addEdge(i, M + size1, 1);
+        mf.addEdge(i, M + size2, 1);
+    }
+
+    // 3. Connect Sizes to Sink with Capacity N
+    // (Since there are N colors, there are N shirts of EACH size)
+    for(int i = 1; i <= 6; i++) {
+        mf.addEdge(M + i, T, N);
+    }
+
+    // 4. Check if Max Flow == M (everyone got a shirt)
+    if(mf.edmondsKarp(S, T) == M) {
+        cout << "Case " << t << ": YES" << endl;
+    } else {
+        cout << "Case " << t << ": NO" << endl;
+    }
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int t;
-    cin >> t;
-    for (int i = 1; i <= t; i++) {
-        solve(i);
+    if (cin >> t) {
+        for(int i = 1; i <= t; i++) {
+            solve(i);
+        }
     }
+    return 0;
 }
