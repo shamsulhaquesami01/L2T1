@@ -2,6 +2,7 @@
 #include <queue>
 #include <algorithm>
 #include <climits>
+#include <iostream>
 
 using namespace std;
 
@@ -13,19 +14,21 @@ struct Edge {
 };
 
 class Dinic {
+public: // Made public to access graph for output printing
     int N;
     vector<vector<Edge>> graph;
     vector<int> level; // Level graph (distance from source)
     vector<int> ptr;   // Next edge index to explore (optimization)
 
-public:
     Dinic(int n) : N(n), graph(n), level(n), ptr(n) {}
 
-    void addEdge(int u, int v, long long cap) {
+    // Modified to return the index of the added edge
+    int addEdge(int u, int v, long long cap) {
         Edge a = {v, cap, 0, (int)graph[v].size()};
-        Edge b = {u, 0, 0, (int)graph[u].size()};
+        Edge b = {u, 0, 0, (int)graph[u].size()}; // Reverse edge with 0 capacity
         graph[u].push_back(a);
         graph[v].push_back(b);
+        return (int)graph[u].size() - 1; // Return index of forward edge
     }
 
     // 1. BFS to build the Level Graph
@@ -76,3 +79,44 @@ public:
         return flow;
     }
 };
+
+struct InputEdge {
+    int u, v;
+    int capacity;
+    int edge_index; // Index in graph[u]
+};
+
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    Dinic dinic(N);
+    vector<InputEdge> edges;
+
+    // 1. Read Edges
+    for (int i = 0; i < M; i++) {
+        int u, v, c;
+        cin >> u >> v >> c;
+        // Store the index returned by addEdge to retrieve flow later
+        int idx = dinic.addEdge(u, v, c);
+        edges.push_back({u, v, c, idx});
+    }
+
+    int s, t;
+    cin >> s >> t;
+
+    // 2. Compute Max Flow
+    cout << dinic.max_flow(s, t) << "\n";
+
+    // 3. Print Flow on Each Edge
+    for (const auto &e : edges) {
+        long long flow = dinic.graph[e.u][e.edge_index].flow;
+        cout << e.u << " " << e.v << " " << flow << "/" << e.capacity << "\n";
+    }
+
+    return 0;
+}

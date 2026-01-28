@@ -71,17 +71,20 @@ public:
     }
 };
 
+struct status{
+    int height,age,divorce;
+};
 void solve(int t) {
     int n, m;
     cin >> n >>m;
-    vector<tuple<int,int,int> > A(n);
+    vector<status> A(n);
     for(int i=0; i<n; i++){
         int a,b,c;
         cin>>a>>b>>c;
         A[i]={a,b,c};
     }
     
-    vector<tuple<int,int,int> > B(m);
+    vector<status > B(m);
     for(int i=0; i<m; i++) {
         int a,b,c;
         cin>>a>>b>>c;
