@@ -281,10 +281,11 @@ class ProbingHashTable : public HashTableBase<K, V>
     }
 
 public:
+    // Updated Constructor to accept c1 and c2
     ProbingHashTable(unsigned long long (*hf)(const K &),
                      unsigned long long (*auxHf)(const K &),
-                     ResolutionMethod m, int size = 13)
-        : HashTableBase<K, V>(size), hashFunc(hf), auxHashFunc(auxHf), method(m), C1(1), C2(1)
+                     ResolutionMethod m, int c1, int c2, int size = 13)
+        : HashTableBase<K, V>(size), hashFunc(hf), auxHashFunc(auxHf), method(m), C1(c1), C2(c2)
     {
         table.resize(size);
     }
@@ -434,8 +435,14 @@ public:
 int main()
 {
     int N_WORDS = 10000;
-    int WORD_LEN = 10;
+    int WORD_LEN ;
     int SEARCH_COUNT = 1000;
+    int C1 , C2;
+
+    cout << "Enter the word length (n): ";
+    cin >> WORD_LEN;
+    cout << "Enter C1 and C2 for Custom Probing: ";
+    cin >> C1 >> C2;
 
     cout << "Generating " << N_WORDS << " unique words..." << endl;
     WordGenerator gen(WORD_LEN);
@@ -466,7 +473,7 @@ int main()
             if (method == CHAINING)
                 table = new ChainingHashTable<string, int>(Hash1);
             else
-                table = new ProbingHashTable<string, int>(Hash1, AuxHash, method);
+                table = new ProbingHashTable<string, int>(Hash1, AuxHash, method, C1, C2);
 
             for (int i = 0; i < N_WORDS; i++)
                 table->insert(words[i], i + 1);
@@ -489,7 +496,7 @@ int main()
             if (method == CHAINING)
                 table = new ChainingHashTable<string, int>(Hash2);
             else
-                table = new ProbingHashTable<string, int>(Hash2, AuxHash, method);
+                table = new ProbingHashTable<string, int>(Hash2, AuxHash, method, C1, C2);
 
             for (int i = 0; i < N_WORDS; i++)
                 table->insert(words[i], i + 1);
