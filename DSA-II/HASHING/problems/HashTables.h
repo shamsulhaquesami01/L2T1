@@ -41,6 +41,15 @@ int prevPrime(int n)
     return n;
 }
 
+unsigned long long inthash(const int& key) {
+    // Cast to unsigned int internally for bitwise operations if needed
+    unsigned int ukey = (unsigned int)key; 
+    
+    ukey = (ukey ^ 61) ^ (ukey >> 16);
+    ukey = ukey * 2654435769U;
+    return ukey ^ (ukey >> 16);
+}
+
 // Polynomial Rolling Hash
 unsigned long long Hash1(const string &key)
 {
@@ -141,6 +150,13 @@ public:
         table.resize(size);
     }
 
+    void traverse(void (*callback)(const K&, const V&)) {
+    for (const auto& bucket : table) {
+        for (const auto& pair : bucket) {
+            callback(pair.first, pair.second);
+        }
+    }
+}
     void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
@@ -327,6 +343,15 @@ int getMaxClusterSize() {
 
     return maxCluster;
 }
+
+void traverse(void (*callback)(const K&, const V&)) {
+    for (const auto& entry : table) {
+        if (entry.info == ACTIVE) {
+            callback(entry.key, entry.value);
+        }
+    }
+}
+
     void insert(const K &key, V value) override
     {
         int i = 0;
