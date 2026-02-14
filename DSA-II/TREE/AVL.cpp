@@ -8,7 +8,6 @@
 
 using namespace std;
 
-// Template for Key (K) and Value (V) to ensure reusability [cite: 34, 62]
 template<typename K, typename V>
 class AVLNode {
 public:
@@ -48,7 +47,6 @@ private:
         return y;
     }
 
-    // Logic for insertion with success/fail tracking 
     AVLNode<K, V>* insert(AVLNode<K, V>* node, K key, V value, bool &success) {
         if (!node) {
             success = true;
@@ -57,7 +55,7 @@ private:
         if (key < node->key) node->left = insert(node->left, key, value, success);
         else if (key > node->key) node->right = insert(node->right, key, value, success);
         else {
-            success = false; // Duplicate key 
+            success = false;
             return node;
         }
 
@@ -122,10 +120,10 @@ private:
         return root;
     }
 
-    // Traversal implementations using stringstreams for file output [cite: 43, 44]
+    
     void preOrder(AVLNode<K, V>* root, stringstream& ss) {
         if (root) {
-            ss << root->key << " "; // Or root->key << ":" << root->value << " " depending on exact format preference
+            ss << root->key << " "; 
             preOrder(root->left, ss);
             preOrder(root->right, ss);
         }
@@ -186,7 +184,6 @@ public:
 };
 
 int main() {
-    // Implementing File I/O 
     ifstream inputFile("input.txt");
     ofstream outputFile("output.txt");
 
@@ -200,20 +197,16 @@ int main() {
     for (int i = 0; i < N; ++i) {
         int e, x;
         inputFile >> e >> x;
-        if (e == 1) { // Insert [cite: 48]
-            // Sample shows input for 1 can have one or two params. 
-            // Based on Problem 2, it's e_i and X_i. Using X_i as both key and value for simplicity.
+        if (e == 1) { 
             bool res = tree.insert(x, x);
             results.push_back(to_string(e) + " " + to_string(x) + " " + (res ? "1" : "0"));
-        } else if (e == 0) { // Delete [cite: 48]
+        } else if (e == 0) { 
             bool res = tree.remove(x);
             results.push_back(to_string(e) + " " + to_string(x) + " " + (res ? "1" : "0"));
-        } else if (e == 2) { // Traverse [cite: 48]
+        } else if (e == 2) { 
             results.push_back(tree.traverse(x));
         }
     }
-
-    // Print total line count first [cite: 50]
     outputFile << results.size() << endl;
     for (const string& s : results) {
         outputFile << s << endl;
