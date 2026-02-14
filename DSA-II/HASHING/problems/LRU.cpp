@@ -1,15 +1,16 @@
-#ifndef HASHTABLES_H
-#define HASHTABLES_H
-
 #include <iostream>
 #include <vector>
 #include <list>
 #include <string>
-#include <set>
-#include <random>
 #include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <random>
+#include <set>
 #include <ctime>
+
 using namespace std;
+
 // Prime Number Helpers 
 bool isPrime(int n)
 {
@@ -41,17 +42,6 @@ int prevPrime(int n)
     return n;
 }
 
-unsigned long long inthash(const int& key) {
-    // Cast to unsigned int internally for bitwise operations if needed
-    unsigned int ukey = (unsigned int)key; 
-    
-    ukey = (ukey ^ 61) ^ (ukey >> 16);
-    ukey = ukey * 2654435769U;
-    return ukey ^ (ukey >> 16);
-}
-unsigned long long IntAuxHash(const int& key) {
-    return (key % 7) + 1; 
-}
 // Polynomial Rolling Hash
 unsigned long long Hash1(const string &key)
 {
@@ -140,10 +130,21 @@ public:
 };
 
 template <typename K, typename V>
+struct HashEntry2
+{
+    K key;
+    V value;
+    int lastaccesstime;
+    HashEntry():{}
+};
+
+template <typename K, typename V>
 class ChainingHashTable : public HashTableBase<K, V>
 {
-    vector<list<pair<K, V>>> table;
+    // Now using list of HashEntry instead of pair
+    vector<list<HashEntry2<K, V>>> table;
     unsigned long long (*hashFunc)(const K &);
+    int time=0;
 
 public:
     ChainingHashTable(unsigned long long (*hf)(const K &), int size = 13)
@@ -152,48 +153,44 @@ public:
         table.resize(size);
     }
 
-    void traverse(void (*callback)(const K&, const V&)) {
-    for (const auto& bucket : table) {
-        for (const auto& pair : bucket) {
-            callback(pair.first, pair.second);
-        }
-    }
-}
     void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
 
-        if (!table[idx].empty())
+        // Optimization: Single pass to check existence and update
+        for (auto &entry : table[idx])
         {
-            bool found = false;
-            for (auto &p : table[idx])
-                if (p.first == key)
-                    found = true;
-
-            if (!found)
-                this->totalCollisions++;
-        }
-
-        for (auto &pair : table[idx])
-        {
-            if (pair.first == key)
+            if (entry.key == key)
             {
-                pair.second = value;
+                this->time++;
+                entry.value = value;
+                entry.lastaccesstime=time;
                 return;
             }
         }
+//lru eviction
+if (this->getLoadFactor() > 0.8 && !table[idx].empty()) 
+        {
+            remove_last(key); // Helper to remove LRU from this bucket
+        }
+        // If we reach here, the key is new. 
+        if (!table[idx].empty())
+        {
+            this->totalCollisions++;
+        }
 
-        table[idx].push_back({key, value});
+        HashEntry2<K, V> newEntry;
+        newEntry.key = key;
+        newEntry.value = value;
+        this->time++;
+        newentry.lastaccesstime=time;
+
+        table[idx].push_back(newEntry);
         this->numElements++;
         this->insertionsSinceExpand++;
-        
-    int K_LIMIT = 5; // Example bound
-    if (table[idx].size() > K_LIMIT) {
-        // Force expansion even if load factor is low
-        this->rehash(nextPrime(this->tableSize * 2));
-    }
-        this->checkResize();
+
+       // this->checkResize();
     }
 
     V *search(const K &key, int &hits) override
@@ -202,11 +199,15 @@ public:
         int idx = h % this->tableSize;
         hits = 0;
 
-        hits++;
-        for (auto &pair : table[idx])
+        // The first hit is the initial access to the bucket
+        hits++; 
+        for (auto &entry : table[idx])
         {
-            if (pair.first == key)
-                return &pair.second;
+            if (entry.key == key){
+                this->time++;
+                entry.lastaccesstime=this->time;
+                return &entry.value;
+            }
             hits++;
         }
         return nullptr;
@@ -217,11 +218,12 @@ public:
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
         auto &lst = table[idx];
+
         for (auto it = lst.begin(); it != lst.end(); ++it)
         {
-            if (it->first == key)
+            if (it->key == key)
             {
-                lst.erase(it);
+                lst.erase(it); // In chaining, we physically remove the node
                 this->numElements--;
                 this->deletionsSinceCompact++;
                 this->checkResize();
@@ -230,9 +232,29 @@ public:
         }
     }
 
+void remove_last(const K &key) {
+        unsigned long long h = hashFunc(key);
+        int idx = h % this->tableSize;
+        auto &lst = table[idx];
+
+        if (lst.empty()) return;
+
+        // Find the entry with the MINIMUM lastaccesstime
+        auto lru_it = lst.begin();
+        for (auto it = lst.begin(); it != lst.end(); ++it) {
+            if (it->lastaccesstime < lru_it->lastaccesstime) {
+                lru_it = it;
+            }
+        }
+
+        // Erase the LRU element
+        // cout << "Evicting LRU Key: " << lru_it->key << endl; // Debug
+        lst.erase(lru_it);
+        this->numElements--;
+    }
     void rehash(int newSize) override
     {
-        vector<list<pair<K, V>>> oldTable = table;
+        vector<list<HashEntry2<K, V>>> oldTable = table;
         table.clear();
         table.resize(newSize);
         this->tableSize = newSize;
@@ -240,15 +262,15 @@ public:
 
         for (const auto &lst : oldTable)
         {
-            for (const auto &p : lst)
+            for (const auto &entry : lst)
             {
-                unsigned long long h = hashFunc(p.first);
+                unsigned long long h = hashFunc(entry.key);
                 int idx = h % this->tableSize;
 
                 if (!table[idx].empty())
                     this->totalCollisions++;
 
-                table[idx].push_back(p);
+                table[idx].push_back(entry);
                 this->numElements++;
             }
         }
@@ -270,6 +292,7 @@ struct HashEntry
     EntryType info;
     HashEntry() : info(EMPTY) {}
 };
+
 
 template <typename K, typename V>
 class ProbingHashTable : public HashTableBase<K, V>
@@ -311,48 +334,6 @@ public:
     {
         table.resize(size);
     }
- // Add inside ProbingHashTable class
-int getMaxClusterSize() {
-    int maxCluster = 0;
-    int currentCluster = 0;
-    
-    // 1. Standard Linear Scan
-    for(int i = 0; i < table.size(); i++) {
-        if(table[i].info == ACTIVE) {
-            currentCluster++;
-        } else {
-            maxCluster = max(maxCluster, currentCluster);
-            currentCluster = 0;
-        }
-    }
-    maxCluster = max(maxCluster, currentCluster); 
-
-    // 2. Handle Wrap-Around Case (Circular Array)
-    if(table[0].info == ACTIVE && table[table.size()-1].info == ACTIVE) {
-        int headCluster = 0;
-        for(int i = 0; i < table.size() && table[i].info == ACTIVE; i++) 
-            headCluster++;
-            
-        int tailCluster = 0;
-        for(int i = table.size() - 1; i >= 0 && table[i].info == ACTIVE; i--) 
-            tailCluster++;
-            
-        if(headCluster + tailCluster >= table.size()) 
-            return table.size();
-            
-        maxCluster = max(maxCluster, headCluster + tailCluster);
-    }
-
-    return maxCluster;
-}
-
-void traverse(void (*callback)(const K&, const V&)) {
-    for (const auto& entry : table) {
-        if (entry.info == ACTIVE) {
-            callback(entry.key, entry.value);
-        }
-    }
-}
 
     void insert(const K &key, V value) override
     {
@@ -496,5 +477,98 @@ public:
     }
 };
 
+int main()
+{
+    int N_WORDS = 10000;
+    int WORD_LEN ;
+    int SEARCH_COUNT = 1000;
+    int C1 , C2;
 
-#endif
+    cout << "Enter the word length (n): ";
+    cin >> WORD_LEN;
+    cout << "Enter C1 and C2 for Custom Probing: ";
+    cin >> C1 >> C2;
+
+    cout << "Generating " << N_WORDS << " unique words..." << endl;
+    WordGenerator gen(WORD_LEN);
+    vector<string> words;
+    for (int i = 0; i < N_WORDS; i++)
+    {
+        words.push_back(gen.getUniqueWord());
+    }
+
+    vector<string> searchQueries = gen.getRandomSample(SEARCH_COUNT);
+
+    cout << "--------------------------------------------------------------------------------" << endl;
+    cout << setw(20) << "Method" << " | "
+         << setw(25) << "Hash1 (Poly)" << " | "
+         << setw(25) << "Hash2 (DJB2)" << endl;
+    cout << setw(20) << " " << " | "
+         << setw(10) << "Collisions" << setw(15) << "Avg Hits" << " | "
+         << setw(10) << "Collisions" << setw(15) << "Avg Hits" << endl;
+    cout << "--------------------------------------------------------------------------------" << endl;
+
+    auto runTest = [&](ResolutionMethod method, string methodName)
+    {
+        long long col1 = 0, col2 = 0;
+        double hit1 = 0, hit2 = 0;
+
+        {
+            HashTableBase<string, int> *table;
+            if (method == CHAINING)
+                table = new ChainingHashTable<string, int>(Hash1);
+            else
+                table = new ProbingHashTable<string, int>(Hash1, AuxHash, method, C1, C2);
+
+            for (int i = 0; i < N_WORDS; i++)
+                table->insert(words[i], i + 1);
+            col1 = table->getCollisions();
+
+            long long totalHits = 0;
+            for (const string &q : searchQueries)
+            {
+                int h = 0;
+                table->search(q, h);
+                totalHits += h;
+            }
+            hit1 = (double)totalHits / SEARCH_COUNT;
+
+            delete table;
+        }
+
+        {
+            HashTableBase<string, int> *table;
+            if (method == CHAINING)
+                table = new ChainingHashTable<string, int>(Hash2);
+            else
+                table = new ProbingHashTable<string, int>(Hash2, AuxHash, method, C1, C2);
+
+            for (int i = 0; i < N_WORDS; i++)
+                table->insert(words[i], i + 1);
+            col2 = table->getCollisions();
+
+            long long totalHits = 0;
+            for (const string &q : searchQueries)
+            {
+                int h = 0;
+                table->search(q, h);
+                totalHits += h;
+            }
+            hit2 = (double)totalHits / SEARCH_COUNT;
+
+            delete table;
+        }
+
+        cout << setw(20) << methodName << " | "
+             << setw(10) << col1 << setw(15) << fixed << setprecision(3) << hit1 << " | "
+             << setw(10) << col2 << setw(15) << fixed << setprecision(3) << hit2 << endl;
+    };
+
+    runTest(CHAINING, "Chaining Method");
+    runTest(DOUBLE_HASHING, "Double Hashing");
+    runTest(CUSTOM_PROBING, "Custom Probing");
+
+    cout << "--------------------------------------------------------------------------------" << endl;
+
+    return 0;
+}
