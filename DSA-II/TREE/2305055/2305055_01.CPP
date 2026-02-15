@@ -217,7 +217,7 @@ public:
         return true;
     }
 
-    bool remove(T key) {
+bool remove(T key) {
         Node* z = root;
         while (z != T_Nil && z->data != key) {
             if (key < z->data) z = z->left;
@@ -228,19 +228,25 @@ public:
         Node* y = z;
         Node* x;
         Color y_original_color = y->color;
+        Node* fixupStart = nullptr; // where to start size update
         
         if (z->left == T_Nil) {
             x = z->right;
+            fixupStart = z->parent;
             transplant(z, z->right);
         } else if (z->right == T_Nil) {
             x = z->left;
+            fixupStart = z->parent;
             transplant(z, z->left);
         } else {
             y = minimum(z->right);
             y_original_color = y->color;
             x = y->right;
-            if (y->parent == z) x->parent = y;
-            else {
+            if (y->parent == z) {
+                x->parent = y;
+                fixupStart = y; // z's position after transplant
+            } else {
+                fixupStart = y->parent;
                 transplant(y, y->right);
                 y->right = z->right;
                 y->right->parent = y;
@@ -249,16 +255,18 @@ public:
             y->left = z->left;
             y->left->parent = y;
             y->color = z->color;
+            if (fixupStart == z->parent) fixupStart = y;
         }
 
-        // Update sizes 
-        Node* temp = x->parent;
+        delete z;
+
+        // Update sizes from the point of deletion 
+        Node* temp = fixupStart;
         while (temp != nullptr) {
             updateSize(temp);
             temp = temp->parent;
         }
 
-        delete z;
         if (y_original_color == BLACK) fixDelete(x);
         return true;
     }
@@ -289,7 +297,7 @@ public:
 };
 
 int main() {
-    ifstream fin("input.txt");
+    ifstream fin("input_rbt.txt");
     ofstream fout("output.txt");
     
     int N; 

@@ -13,7 +13,7 @@ class AVLNode {
 public:
     K key;
     V value;
-    AVLNode<K, V> *left, *right;
+    AVLNode<K, V>* left, * right;
     int height;
 
     AVLNode(K k, V v) : key(k), value(v), left(nullptr), right(nullptr), height(1) {}
@@ -47,7 +47,7 @@ private:
         return y;
     }
 
-    AVLNode<K, V>* insert(AVLNode<K, V>* node, K key, V value, bool &success) {
+    AVLNode<K, V>* insert(AVLNode<K, V>* node, K key, V value, bool& success) {
         if (!node) {
             success = true;
             return new AVLNode<K, V>(key, value);
@@ -81,7 +81,7 @@ private:
         return current;
     }
 
-    AVLNode<K, V>* deleteNode(AVLNode<K, V>* root, K key, bool &success) {
+    AVLNode<K, V>* deleteNode(AVLNode<K, V>* root, K key, bool& success) {
         if (!root) {
             success = false;
             return root;
@@ -95,7 +95,8 @@ private:
                 if (!temp) { temp = root; root = nullptr; }
                 else *root = *temp;
                 delete temp;
-            } else {
+            }
+            else {
                 AVLNode<K, V>* temp = minValueNode(root->right);
                 root->key = temp->key;
                 root->value = temp->value;
@@ -120,10 +121,10 @@ private:
         return root;
     }
 
-    
+
     void preOrder(AVLNode<K, V>* root, stringstream& ss) {
         if (root) {
-            ss << root->key << " "; 
+            ss << root->key << " ";
             preOrder(root->left, ss);
             preOrder(root->right, ss);
         }
@@ -179,31 +180,39 @@ public:
         else if (type == 2) inOrder(root, ss);
         else if (type == 3) postOrder(root, ss);
         else if (type == 4) levelOrder(root, ss);
-        return ss.str();
+
+        string result = ss.str();
+        //trailing space 
+        if (!result.empty() && result[result.length() - 1] == ' ') {
+            result = result.substr(0, result.length() - 1);
+        }
+        return result;
     }
 };
 
 int main() {
-    ifstream inputFile("input.txt");
+    ifstream inputFile("input_avl.txt");
     ofstream outputFile("output.txt");
 
     if (!inputFile.is_open()) return 1;
 
     int N;
     inputFile >> N;
-    AVLTree<int, int> tree; 
+    AVLTree<int, int> tree;
     vector<string> results;
 
     for (int i = 0; i < N; ++i) {
         int e, x;
         inputFile >> e >> x;
-        if (e == 1) { 
+        if (e == 1) {
             bool res = tree.insert(x, x);
             results.push_back(to_string(e) + " " + to_string(x) + " " + (res ? "1" : "0"));
-        } else if (e == 0) { 
+        }
+        else if (e == 0) {
             bool res = tree.remove(x);
             results.push_back(to_string(e) + " " + to_string(x) + " " + (res ? "1" : "0"));
-        } else if (e == 2) { 
+        }
+        else if (e == 2) {
             results.push_back(tree.traverse(x));
         }
     }
