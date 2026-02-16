@@ -43,7 +43,7 @@ int prevPrime(int n)
 }
 
 // Polynomial Rolling Hash
-unsigned long long Hash1(const string& key)
+unsigned long long Hash1(const string &key)
 {
     unsigned long long hashVal = 0;
     for (char c : key)
@@ -54,7 +54,7 @@ unsigned long long Hash1(const string& key)
 }
 
 // DJB2 Hash
-unsigned long long Hash2(const string& key)
+unsigned long long Hash2(const string &key)
 {
     unsigned long long hash = 5381;
     for (char c : key)
@@ -64,7 +64,7 @@ unsigned long long Hash2(const string& key)
     return hash;
 }
 
-unsigned long long AuxHash(const string& key)
+unsigned long long AuxHash(const string &key)
 {
     unsigned long long hash = 0;
     for (char c : key)
@@ -94,15 +94,14 @@ protected:
 
 public:
     HashTableBase(int size = 13) : tableSize(size), initialSize(size),
-        numElements(0), insertionsSinceExpand(0),
-        deletionsSinceCompact(0), totalCollisions(0) {
-    }
+                                   numElements(0), insertionsSinceExpand(0),
+                                   deletionsSinceCompact(0), totalCollisions(0) {}
 
     virtual ~HashTableBase() {}
-    virtual void printprobe(const K& key)=0 ;
-    virtual void insert(const K& key, V value) = 0;
-    virtual V* search(const K& key, int& hits) = 0;
-    virtual void remove(const K& key) = 0;
+
+    virtual void insert(const K &key, V value) = 0;
+    virtual V *search(const K &key, int &hits) = 0;
+    virtual void remove(const K &key) = 0;
 
     long long getCollisions() const { return totalCollisions; }
     double getLoadFactor() const { return (double)numElements / tableSize; }
@@ -134,18 +133,16 @@ template <typename K, typename V>
 class ChainingHashTable : public HashTableBase<K, V>
 {
     vector<list<pair<K, V>>> table;
-    unsigned long long (*hashFunc)(const K&);
+    unsigned long long (*hashFunc)(const K &);
 
 public:
-    ChainingHashTable(unsigned long long (*hf)(const K&), int size = 13)
+    ChainingHashTable(unsigned long long (*hf)(const K &), int size = 13)
         : HashTableBase<K, V>(size), hashFunc(hf)
     {
         table.resize(size);
     }
-   void printprobe(const K& key) override {
-        return;
-    }
-    void insert(const K& key, V value) override
+
+    void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
@@ -153,7 +150,7 @@ public:
         if (!table[idx].empty())
         {
             bool found = false;
-            for (auto& p : table[idx])
+            for (auto &p : table[idx])
                 if (p.first == key)
                     found = true;
 
@@ -161,7 +158,7 @@ public:
                 this->totalCollisions++;
         }
 
-        for (auto& pair : table[idx])
+        for (auto &pair : table[idx])
         {
             if (pair.first == key)
             {
@@ -170,21 +167,21 @@ public:
             }
         }
 
-        table[idx].push_back({ key, value });
+        table[idx].push_back({key, value});
         this->numElements++;
         this->insertionsSinceExpand++;
 
         this->checkResize();
     }
 
-    V* search(const K& key, int& hits) override
+    V *search(const K &key, int &hits) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
         hits = 0;
 
         hits++;
-        for (auto& pair : table[idx])
+        for (auto &pair : table[idx])
         {
             if (pair.first == key)
                 return &pair.second;
@@ -193,11 +190,11 @@ public:
         return nullptr;
     }
 
-    void remove(const K& key) override
+    void remove(const K &key) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
-        auto& lst = table[idx];
+        auto &lst = table[idx];
         for (auto it = lst.begin(); it != lst.end(); ++it)
         {
             if (it->first == key)
@@ -210,6 +207,7 @@ public:
             }
         }
     }
+
     void rehash(int newSize) override
     {
         vector<list<pair<K, V>>> oldTable = table;
@@ -218,9 +216,9 @@ public:
         this->tableSize = newSize;
         this->numElements = 0;
 
-        for (const auto& lst : oldTable)
+        for (const auto &lst : oldTable)
         {
-            for (const auto& p : lst)
+            for (const auto &p : lst)
             {
                 unsigned long long h = hashFunc(p.first);
                 int idx = h % this->tableSize;
@@ -255,13 +253,13 @@ template <typename K, typename V>
 class ProbingHashTable : public HashTableBase<K, V>
 {
     vector<HashEntry<K, V>> table;
-    unsigned long long (*hashFunc)(const K&);
-    unsigned long long (*auxHashFunc)(const K&);
+    unsigned long long (*hashFunc)(const K &);
+    unsigned long long (*auxHashFunc)(const K &);
 
     ResolutionMethod method;
     int C1, C2;
 
-    int getProbe(const K& key, int i)
+    int getProbe(const K &key, int i)
     {
         unsigned long long h = hashFunc(key);
         unsigned long long aux = auxHashFunc(key);
@@ -284,37 +282,15 @@ class ProbingHashTable : public HashTableBase<K, V>
 
 public:
     // Updated Constructor to accept c1 and c2
-    ProbingHashTable(unsigned long long (*hf)(const K&),
-        unsigned long long (*auxHf)(const K&),
-        ResolutionMethod m, int c1, int c2, int size = 13)
+    ProbingHashTable(unsigned long long (*hf)(const K &),
+                     unsigned long long (*auxHf)(const K &),
+                     ResolutionMethod m, int c1, int c2, int size = 13)
         : HashTableBase<K, V>(size), hashFunc(hf), auxHashFunc(auxHf), method(m), C1(c1), C2(c2)
     {
         table.resize(size);
     }
-    void printprobe(const K& key) override {
-      
-        int i = 0;
-        int idx = getProbe(key, i);
-        
-        if(table[idx].info == EMPTY){
-            cout<<idx<<" ";
-            return;
-        }
-        while (table[idx].info != EMPTY)
-        {
-            cout<<idx<<" ";
-            if (table[idx].info == ACTIVE && table[idx].key == key)
-            {
-                return;
-            }
-            i++;
-            idx = getProbe(key, i);
-            if (i > this->tableSize * 2)
-                break;
-        }
-        cout<<idx<<" ";
-    }
-    void insert(const K& key, V value) override
+
+    void insert(const K &key, V value) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -343,7 +319,7 @@ public:
         this->checkResize();
     }
 
-    V* search(const K& key, int& hits) override
+    V *search(const K &key, int &hits) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -364,7 +340,7 @@ public:
         return nullptr;
     }
 
-    void remove(const K& key) override
+    void remove(const K &key) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -394,7 +370,7 @@ public:
         this->tableSize = newSize;
         this->numElements = 0;
 
-        for (const auto& entry : oldTable)
+        for (const auto &entry : oldTable)
         {
             if (entry.info == ACTIVE)
             {
@@ -478,11 +454,76 @@ int main()
 
     vector<string> searchQueries = gen.getRandomSample(SEARCH_COUNT);
 
+    cout << "--------------------------------------------------------------------------------" << endl;
+    cout << setw(20) << "Method" << " | "
+         << setw(25) << "Hash1 (Poly)" << " | "
+         << setw(25) << "Hash2 (DJB2)" << endl;
+    cout << setw(20) << " " << " | "
+         << setw(10) << "Collisions" << setw(15) << "Avg Hits" << " | "
+         << setw(10) << "Collisions" << setw(15) << "Avg Hits" << endl;
+    cout << "--------------------------------------------------------------------------------" << endl;
+
+    auto runTest = [&](ResolutionMethod method, string methodName)
+    {
+        long long col1 = 0, col2 = 0;
+        double hit1 = 0, hit2 = 0;
+
+        {
             HashTableBase<string, int> *table;
-            table = new ProbingHashTable<string, int>(Hash1, AuxHash, CUSTOM_PROBING, C1, C2);
+            if (method == CHAINING)
+                table = new ChainingHashTable<string, int>(Hash1);
+            else
+                table = new ProbingHashTable<string, int>(Hash1, AuxHash, method, C1, C2);
 
             for (int i = 0; i < N_WORDS; i++)
                 table->insert(words[i], i + 1);
-    table->printprobe("hala");  
+            col1 = table->getCollisions();
+
+            long long totalHits = 0;
+            for (const string &q : searchQueries)
+            {
+                int h = 0;
+                table->search(q, h);
+                totalHits += h;
+            }
+            hit1 = (double)totalHits / SEARCH_COUNT;
+
+            delete table;
+        }
+
+        {
+            HashTableBase<string, int> *table;
+            if (method == CHAINING)
+                table = new ChainingHashTable<string, int>(Hash2);
+            else
+                table = new ProbingHashTable<string, int>(Hash2, AuxHash, method, C1, C2);
+
+            for (int i = 0; i < N_WORDS; i++)
+                table->insert(words[i], i + 1);
+            col2 = table->getCollisions();
+
+            long long totalHits = 0;
+            for (const string &q : searchQueries)
+            {
+                int h = 0;
+                table->search(q, h);
+                totalHits += h;
+            }
+            hit2 = (double)totalHits / SEARCH_COUNT;
+
+            delete table;
+        }
+
+        cout << setw(20) << methodName << " | "
+             << setw(10) << col1 << setw(15) << fixed << setprecision(3) << hit1 << " | "
+             << setw(10) << col2 << setw(15) << fixed << setprecision(3) << hit2 << endl;
+    };
+
+    runTest(CHAINING, "Chaining Method");
+    runTest(DOUBLE_HASHING, "Double Hashing");
+    runTest(CUSTOM_PROBING, "Custom Probing");
+
+    cout << "--------------------------------------------------------------------------------" << endl;
+
     return 0;
 }
