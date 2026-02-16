@@ -39,4 +39,4 @@ int main(){
 return 0;
 }
 
-//g++ -std=c++17 first_nonrepeating.cpp -o a && ./a
+//g++ -std=c++17 longest_nonrepeating_substring.cpp -o a && ./a
