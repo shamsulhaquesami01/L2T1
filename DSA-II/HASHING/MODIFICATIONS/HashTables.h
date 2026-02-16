@@ -572,6 +572,10 @@ void printKeysHashingTo(int targetIndex) {
     }
     return count;
 }
+
+
+
+//basic functions
 void insert(const K &key, V value) override
     {
         int i = 0;
@@ -601,7 +605,7 @@ void insert(const K &key, V value) override
         this->checkResize();
     }
 
-    V *search(const K &key, int &hits) override
+V *search(const K &key, int &hits) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -622,7 +626,7 @@ void insert(const K &key, V value) override
         return nullptr;
     }
 
-    void remove(const K &key) override
+void remove(const K &key) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -644,7 +648,7 @@ void insert(const K &key, V value) override
         }
     }
 
-    void rehash(int newSize) override
+void rehash(int newSize) override
     {
         vector<HashEntry<K, V>> oldTable = table;
         table.clear();
