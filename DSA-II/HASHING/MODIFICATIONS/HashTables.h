@@ -558,6 +558,20 @@ int maxProbe(){
       
        return result;
     }
+
+void printKeysHashingTo(int targetIndex) {
+    int count=0;
+    for(int idx =0; idx<this->tableSize; idx++){
+        if(table[idx].info==ACTIVE ){
+            int h=getProbe(table[idx].key,0);
+             if (hashIndex == targetIndex) {
+                    cout << table[i].key << " ";
+                    count++;
+                }
+        }
+    }
+    return count;
+}
 void insert(const K &key, V value) override
     {
         int i = 0;
