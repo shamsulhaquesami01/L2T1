@@ -104,6 +104,25 @@ public:
 
     long long getCollisions() const { return totalCollisions; }
     double getLoadFactor() const { return (double)numElements / tableSize; }
+    
+    vector<pair<K,V> > exportSorted(){
+        vector<pair<K, V>> temp;
+        
+    // Collect all pairs in range
+      for (int i = 0; i < this->tableSize; i++) {
+          for (const auto& pair : table[i]) {
+              
+                  temp.push_back(pair);
+               
+            }
+        }
+        
+         sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+    return tmp;
+    }
 
     void checkResize()
     {
@@ -140,8 +159,100 @@ public:
     {
         table.resize(size);
     }
+ 
+    void hashOrder(){
+        int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<p.first<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    int bucket_length(int index){
+        int count =0;
+          for(auto p:table[index]){
+                count++;
+            }
+            return count;
+    }
+    void collision_stats(){
+        int ln0=0,ln1=0,ln2=0,ln3=0,ln4=0;
+        int total=0;
+        int highest=-1;
+        for(int idx=0; idx<table.size(); idx++){
+        int lngth=bucket_length(idx);
+        highest=max(highest,lngth);
+        total += lngth;
+        if(lngth==0)ln0++;
+        if(lngth==1)ln1++;
+        if(lngth==2)ln2++;
+        if(lngth==3)ln3++;
+        if(lngth>=4)ln4++;
+       }
+       cout<<"Bucket 0 elements: "<<ln0<<endl;
+       cout<<"Bucket 1 elements: "<<ln1<<endl;
+       cout<<"Bucket 2 elements: "<<ln2<<endl;
+       cout<<"Bucket 3 elements: "<<ln3<<endl;
+       cout<<"Bucket 4+ elements: "<<ln4<<endl;
+       cout<<"total collisions: "<<this->getCollisions()<<endl;
+       cout<<"avg chain length: "<<(double)total/this->tableSize<<endl;
+       cout<<"longest chain: "<<highest<<endl;
 
-    void insert(const K &key, V value) override
+    }
+vector<V> rangeQuery(const K& start, const K& end) {
+    vector<V> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            if (pair.first >= start && pair.first <= end) {
+                result.push_back(pair.second);
+            }
+        }
+    }
+    
+    return result;
+}
+  
+vector<V> rangeQuerySorted(const K& start, const K& end) {
+       vector<pair<K, V>> temp;
+        
+    // Collect all pairs in range
+      for (int i = 0; i < this->tableSize; i++) {
+          for (const auto& pair : table[i]) {
+              if (pair.first >= start && pair.first <= end) {
+                  temp.push_back(pair);
+                }
+            }
+        }
+        
+        // Sort by key
+        sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+        
+        // Extract values
+        vector<V> result;
+        for (const auto& pair : temp) {
+           result.push_back(pair.second);
+        }
+        
+        return result;
+    }
+
+vector<K> getKeysInBucket(int index){
+    vector<K> result;
+    for(auto p:table[index]){
+        result.push_back(p.first);
+    }
+    return result;
+}
+
+void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
@@ -327,7 +438,127 @@ int getMaxClusterSize() {
 
     return maxCluster;
 }
-    void insert(const K &key, V value) override
+
+int getMaxDisplacement(){
+    int maximum=-1;
+    for(auto p:table){
+        if(p.info==ACTIVE){
+           int current_idx =idx_search(p.key);
+           int main_idx=getProbe(p.key,0);
+           maximum=max(maximum,(current_idx-main_idx+this->tableSize)%this->tableSize);
+        }
+    }
+   return maximum;
+}
+int idx_search(const K &key) 
+    {
+        int i = 0;
+        int idx = getProbe(key, i);
+
+        while (table[idx].info != EMPTY)
+        {
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return idx;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        return -1;
+}
+
+void traverse(void (*callback)(const K&, const V&)) {
+    for (const auto& entry : table) {
+        if (entry.info == ACTIVE) {
+            callback(entry.key, entry.value);
+        }
+    }
+}
+
+void hashOrder(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx;
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].key<<" ";
+    }
+    cout<<endl;
+   }
+}
+ void printprobe(const K& key)  {
+      
+        int i = 0;
+        int idx = getProbe(key, i);
+        
+        if(table[idx].info == EMPTY){
+            cout<<idx<<" ";
+            return;
+        }
+        while (table[idx].info != EMPTY)
+        {
+            cout<<idx<<" ";
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        cout<<idx<<" ";
+    }
+
+ int probelength(const K& key)  {
+      
+        int i = 0;
+        int idx = getProbe(key, i);
+        
+        if(table[idx].info == EMPTY){
+           return i+1;
+        }
+        while (table[idx].info != EMPTY)
+        {
+            
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return i+1;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        return i+1;
+    
+    }
+int maxProbe(){
+    int maximum=-1;
+    for(int idx=0; idx<table.size(); idx++){
+    if(table[idx].info==ACTIVE){
+        maximum=max(maximum,probelength(table[idx].key));
+    }
+}
+   return maximum;
+}
+    vector<V> rangeQuery(const K& start, const K& end) {
+      vector<V> result;
+      
+   // Iterate through entire table
+       for (int i = 0; i < this->tableSize; i++) {
+          // Only check ACTIVE entries
+         if (table[i].info == ACTIVE) {
+               // Check if key is in range
+           if (table[i].key >= start && table[i].key <= end) {
+            result.push_back(table[i].value);
+        }
+      }
+        }
+      
+       return result;
+    }
+void insert(const K &key, V value) override
     {
         int i = 0;
         int idx = getProbe(key, i);

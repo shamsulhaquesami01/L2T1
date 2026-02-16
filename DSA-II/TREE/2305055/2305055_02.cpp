@@ -158,10 +158,20 @@ private:
             if (node->right) q.push(node->right);
         }
     }
+    void destroyTree(AVLNode<K, V>* node) {
+        if (node) {
+            destroyTree(node->left);
+            destroyTree(node->right);
+            delete node;
+        }
+    }
 
 public:
     AVLTree() : root(nullptr) {}
-
+    
+    ~AVLTree() {
+        destroyTree(root);
+    }
     bool insert(K key, V value) {
         bool success = false;
         root = insert(root, key, value, success);

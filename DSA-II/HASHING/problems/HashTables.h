@@ -311,40 +311,6 @@ public:
     {
         table.resize(size);
     }
- // Add inside ProbingHashTable class
-int getMaxClusterSize() {
-    int maxCluster = 0;
-    int currentCluster = 0;
-    
-    // 1. Standard Linear Scan
-    for(int i = 0; i < table.size(); i++) {
-        if(table[i].info == ACTIVE) {
-            currentCluster++;
-        } else {
-            maxCluster = max(maxCluster, currentCluster);
-            currentCluster = 0;
-        }
-    }
-    maxCluster = max(maxCluster, currentCluster); 
-
-    // 2. Handle Wrap-Around Case (Circular Array)
-    if(table[0].info == ACTIVE && table[table.size()-1].info == ACTIVE) {
-        int headCluster = 0;
-        for(int i = 0; i < table.size() && table[i].info == ACTIVE; i++) 
-            headCluster++;
-            
-        int tailCluster = 0;
-        for(int i = table.size() - 1; i >= 0 && table[i].info == ACTIVE; i--) 
-            tailCluster++;
-            
-        if(headCluster + tailCluster >= table.size()) 
-            return table.size();
-            
-        maxCluster = max(maxCluster, headCluster + tailCluster);
-    }
-
-    return maxCluster;
-}
 
 void traverse(void (*callback)(const K&, const V&)) {
     for (const auto& entry : table) {
