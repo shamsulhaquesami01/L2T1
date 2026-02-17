@@ -104,25 +104,6 @@ public:
 
     long long getCollisions() const { return totalCollisions; }
     double getLoadFactor() const { return (double)numElements / tableSize; }
-    
-    vector<pair<K,V> > exportSorted(){
-        vector<pair<K, V>> temp;
-        
-    // Collect all pairs in range
-      for (int i = 0; i < this->tableSize; i++) {
-          for (const auto& pair : table[i]) {
-              
-                  temp.push_back(pair);
-               
-            }
-        }
-        
-         sort(temp.begin(), temp.end(), 
-             [](const pair<K, V>& a, const pair<K, V>& b) {
-                 return a.first < b.first;
-            });
-    return tmp;
-    }
 
     void checkResize()
     {
@@ -251,7 +232,69 @@ vector<K> getKeysInBucket(int index){
     }
     return result;
 }
+    vector<pair<K,V> > exportSorted(){
+        vector<pair<K, V>> temp;
+        
+    // Collect all pairs in range
+      for (int i = 0; i < this->tableSize; i++) {
+          for (const auto& pair : table[i]) {
+              
+                  temp.push_back(pair);
+               
+            }
+        }
+        
+         sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+    return temp;
+    }
 
+
+
+int isWellDistributed() {
+
+        int total=0;
+        int violation=-1;
+        for(int idx=0; idx<table.size(); idx++){
+        int lngth=bucket_length(idx);
+        total += lngth;
+       }
+       double avg =(double)total/this->tableSize;
+       cout<<"avg chain length: "<<avg<<endl;
+        for(int idx=0; idx<table.size(); idx++){
+        if(bucket_length(idx)>2*avg) violation++;
+       }
+       //cout<<table.size()<<endl;
+       return violation;
+}
+
+void swapValues(K key1, K key2){
+    int dummyhit=0;
+    V * val1= this->search(key1,dummyhit);
+    V * val2=this->search(key2,dummyhit);
+    if (val1 == nullptr || val2 == nullptr) {
+        cout << "Swap failed: One or both keys not found." << endl;
+        return; 
+    }
+    V temp = *val1;
+    *val1=*val2;
+    *val2=temp;
+}
+vector<K> getKeysByValue(const V& targetValue) {
+    vector<K> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            if (pair.second == targetValue) {
+                result.push_back(pair.first);
+            }
+        }
+    }
+    
+    return result;
+}
 void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
@@ -559,22 +602,169 @@ int maxProbe(){
        return result;
     }
 
-void printKeysHashingTo(int targetIndex) {
+int printKeysHashingTo(int targetIndex) {
     int count=0;
     for(int idx =0; idx<this->tableSize; idx++){
         if(table[idx].info==ACTIVE ){
             int h=getProbe(table[idx].key,0);
-             if (hashIndex == targetIndex) {
-                    cout << table[i].key << " ";
+             if (h == targetIndex) {
+                    cout << table[idx].key << " ";
                     count++;
                 }
         }
     }
     return count;
 }
+K keyWIthMaxCOllision(){
+    int maximum=-1;
+    K mkey ;
+    for(int idx=0; idx<table.size(); idx++){
+    if(table[idx].info==ACTIVE){
+        int len = probelength(table[idx].key);
+        if(len>maximum){
+            maximum=len;
+            mkey=table[idx].key;
+        }
+    }
+}
+   return mkey;
+}
 
+void swapValues(K key1, K key2){
+    int dummyhit=0;
+    V * val1= this->search(key1,dummyhit);
+    V * val2=this->search(key2,dummyhit);
+    V temp = *val1;
+    *val1=*val2;
+    *val2=temp;
+}
 
+vector<K> getKeysByValue(const V& targetValue) {
+    vector<K> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            if (table[i].value == targetValue) {
+                result.push_back(table[i].key);
+            }
+        }
+    }
+    
+    return result;
+}
+void clearDeletedMarkers() {
+    vector<pair<K, V>> activeEntries;
+    
+    // Collect ACTIVE entries
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            activeEntries.push_back({table[i].key, table[i].value});
+        }
+    }
+    
+    // Clear entire table
+    for (int i = 0; i < this->tableSize; i++) {
+        table[i].info = EMPTY;
+    }
+    
+    // Reinsert all active entries
+    //numElements = 0;
+    for (const auto& entry : activeEntries) {
+        table.insert(entry.first, entry.second);
+    }
+    
+    cout << "Cleared all DELETED markers" << endl;
+    cout << "Reinserted " << activeEntries.size() << " entries" << endl;
+}
 
+vector<K> findOrphanedKeys() {
+vector<K> res;
+for(int idx=0; idx<this->tableSize;idx++){
+    if(table[idx].info==ACTIVE){
+        int h=getProbe(table[idx].key,0);
+        if(h!=idx) res.push_back(table[idx].key);
+    }
+}
+return res;
+}
+
+void findAllCollidingPairs() {
+    // 1. Create a temporary map to group keys by their HOME address
+    // Index = Hash Code (0 to tableSize-1)
+    // Value = List of keys that wanted this address
+    vector<vector<K>> homeBuckets(this->tableSize);
+
+    // 2. Iterate through the ACTUAL table to find all active keys
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            // Calculate where this key ORIGINALLY wanted to be
+            int homeIndex = getProbe(table[i].key, 0);
+            
+            // Add it to that home bucket
+            homeBuckets[homeIndex].push_back(table[i].key);
+        }
+    }
+
+    // 3. Print pairs from buckets that have more than 1 key
+    cout << "Colliding Key Pairs (Primary Hash):" << endl;
+    bool foundAny = false;
+
+    for (int i = 0; i < this->tableSize; i++) {
+        if (homeBuckets[i].size() > 1) {
+            foundAny = true;
+            cout << "Index " << i << ": ";
+            
+            // Print all keys in this bucket
+            for (size_t j = 0; j < homeBuckets[i].size(); j++) {
+                cout << homeBuckets[i][j];
+                if (j < homeBuckets[i].size() - 1) cout << ", ";
+            }
+            cout << " (Count: " << homeBuckets[i].size() << ")" << endl;
+        }
+    }
+
+    if (!foundAny) cout << "No collisions found." << endl;
+}
+
+vector<K> getKeysVisitingIndex(int targetIndex) {
+    vector<K> visitors;
+
+    // Iterate over every slot in the table
+    for (int i = 0; i < this->tableSize; i++) {
+        
+        // We only care about keys that are actually in the table
+        if (table[i].info == ACTIVE) {
+            K currentKey = table[i].key;
+            
+            // --- REPLAY PROBE SEQUENCE ---
+            int step = 0;
+            int probeIdx = getProbe(currentKey, step);
+            
+            while (true) {
+                // 1. Did this key step on the target index?
+                if (probeIdx == targetIndex) {
+                    visitors.push_back(currentKey);
+                    break; // Found it! Move to the next key.
+                }
+
+                // 2. Did we reach the key's ACTUAL location?
+                // If we reached index 'i' (where the key lives now) and 
+                // still haven't seen targetIndex, we never will.
+                if (probeIdx == i) {
+                    break; 
+                }
+
+                // 3. Move to next step in the sequence
+                step++;
+                probeIdx = getProbe(currentKey, step);
+
+                // Safety break (infinite loop protection)
+                if (step > this->tableSize) break;
+            }
+        }
+    }
+    return visitors;
+}
 //basic functions
 void insert(const K &key, V value) override
     {

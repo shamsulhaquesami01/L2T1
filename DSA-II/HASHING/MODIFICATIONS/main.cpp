@@ -34,14 +34,22 @@ int main()
 
     vector<string> searchQueries = gen.getRandomSample(SEARCH_COUNT);
 
-            ChainingHashTable<string, int> *table;
-            table = new ChainingHashTable<string, int>(Hash1);
-
+            ProbingHashTable<string, int> *table;
+            table = new ProbingHashTable<string, int>(Hash1,AuxHash,CUSTOM_PROBING,C1,C2);
+            // ChainingHashTable<string, int> *table;
+            // table = new ChainingHashTable<string, int>(Hash1);
             for (int i = 0; i < N_WORDS; i++)
                 table->insert(words[i], i + 1);
     //cout<<table->getMaxDisplacement()<<endl;
-    vector<string> res= table->getKeysInBucket(1);
-    for(string x:res) cout<<x<<endl;
+    // vector<string> res= table->getKeysInBucket(1);
+    // for(string x:res) cout<<x<<endl;
+    //cout<<table->isWellDistributed();
+    // int hit=0;
+    // cout<<*(table->search(words[0],hit))<<"-- "<<*(table->search(words[1],hit))<<endl;
+    // table->swapValues(words[0],words[1]);
+    // cout<<*(table->search(words[0],hit))<<"-- "<<*(table->search(words[1],hit))<<endl;
+    vector<string> st= table->findOrphanedKeys();
+    for(auto s:st) cout<<s<<endl;
     return 0;
 }
 
