@@ -42,6 +42,15 @@ int prevPrime(int n)
 }
 
 // Polynomial Rolling Hash
+
+unsigned long long inthash(const int& key) {
+    // Cast to unsigned int internally for bitwise operations if needed
+    unsigned int ukey = (unsigned int)key; 
+    
+    ukey = (ukey ^ 61) ^ (ukey >> 16);
+    ukey = ukey * 2654435769U;
+    return ukey ^ (ukey >> 16);
+}
 unsigned long long Hash1(const string &key)
 {
     unsigned long long hashVal = 0;
@@ -141,6 +150,13 @@ public:
         table.resize(size);
     }
  
+    void traverse(void (*callback)(const K&, const V&)) {
+    for (const auto& bucket : table) {
+        for (const auto& pair : bucket) {
+            callback(pair.first, pair.second);
+        }
+    }
+}
     void hashOrder(){
         int i=0;
         for(auto bucket:table){
@@ -251,8 +267,54 @@ vector<K> getKeysInBucket(int index){
     return temp;
     }
 
+// Add this inside public: of ChainingHashTable
+vector<pair<K, V>> exportSortedByValue() {
+    vector<pair<K, V>> temp;
 
+    // 1. Collect all pairs
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            temp.push_back(pair);
+        }
+    }
 
+    // 2. Sort by VALUE (Count) in Descending Order
+    // If counts are equal, sort by Key (Alphabetical) as a tie-breaker
+    sort(temp.begin(), temp.end(), 
+         [](const pair<K, V>& a, const pair<K, V>& b) {
+             if (a.second != b.second) {
+                 return a.second > b.second; // High count first
+             }
+             return a.first < b.first; // A-Z tie-breaker
+         });
+
+    return temp;
+}
+
+void unionprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==0||p.second==1||p.second==-1) cout<<p.first<<" ";
+            }
+        }
+}
+void untersectprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==0) cout<<p.first<<" ";
+            }
+        }
+}
+void diffprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==1) cout<<p.first<<" ";
+            }
+        }
+}
 int isWellDistributed() {
 
         int total=0;
@@ -295,6 +357,18 @@ vector<K> getKeysByValue(const V& targetValue) {
     
     return result;
 }
+
+double getImbalance(){
+    double avg = this->getLoadFactor();
+    double res=0;
+    for(int idx=0; idx<this->tableSize;idx++){
+        int len= this->bucket_length(idx);
+        double ans = (len-avg)*(len-avg);
+        res+=ans;
+    }
+    return res;
+}
+
 void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);

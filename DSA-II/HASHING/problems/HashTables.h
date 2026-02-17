@@ -41,6 +41,8 @@ int prevPrime(int n)
     return n;
 }
 
+// Polynomial Rolling Hash
+
 unsigned long long inthash(const int& key) {
     // Cast to unsigned int internally for bitwise operations if needed
     unsigned int ukey = (unsigned int)key; 
@@ -49,10 +51,6 @@ unsigned long long inthash(const int& key) {
     ukey = ukey * 2654435769U;
     return ukey ^ (ukey >> 16);
 }
-unsigned long long IntAuxHash(const int& key) {
-    return (key % 7) + 1; 
-}
-// Polynomial Rolling Hash
 unsigned long long Hash1(const string &key)
 {
     unsigned long long hashVal = 0;
@@ -151,7 +149,7 @@ public:
     {
         table.resize(size);
     }
-
+ 
     void traverse(void (*callback)(const K&, const V&)) {
     for (const auto& bucket : table) {
         for (const auto& pair : bucket) {
@@ -159,7 +157,219 @@ public:
         }
     }
 }
-    void insert(const K &key, V value) override
+    void hashOrder(){
+        int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<p.first<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    int bucket_length(int index){
+        int count =0;
+          for(auto p:table[index]){
+                count++;
+            }
+            return count;
+    }
+    void collision_stats(){
+        int ln0=0,ln1=0,ln2=0,ln3=0,ln4=0;
+        int total=0;
+        int highest=-1;
+        for(int idx=0; idx<table.size(); idx++){
+        int lngth=bucket_length(idx);
+        highest=max(highest,lngth);
+        total += lngth;
+        if(lngth==0)ln0++;
+        if(lngth==1)ln1++;
+        if(lngth==2)ln2++;
+        if(lngth==3)ln3++;
+        if(lngth>=4)ln4++;
+       }
+       cout<<"Bucket 0 elements: "<<ln0<<endl;
+       cout<<"Bucket 1 elements: "<<ln1<<endl;
+       cout<<"Bucket 2 elements: "<<ln2<<endl;
+       cout<<"Bucket 3 elements: "<<ln3<<endl;
+       cout<<"Bucket 4+ elements: "<<ln4<<endl;
+       cout<<"total collisions: "<<this->getCollisions()<<endl;
+       cout<<"avg chain length: "<<(double)total/this->tableSize<<endl;
+       cout<<"longest chain: "<<highest<<endl;
+
+    }
+vector<V> rangeQuery(const K& start, const K& end) {
+    vector<V> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            if (pair.first >= start && pair.first <= end) {
+                result.push_back(pair.second);
+            }
+        }
+    }
+    
+    return result;
+}
+  
+vector<V> rangeQuerySorted(const K& start, const K& end) {
+       vector<pair<K, V>> temp;
+        
+    // Collect all pairs in range
+      for (int i = 0; i < this->tableSize; i++) {
+          for (const auto& pair : table[i]) {
+              if (pair.first >= start && pair.first <= end) {
+                  temp.push_back(pair);
+                }
+            }
+        }
+        
+        // Sort by key
+        sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+        
+        // Extract values
+        vector<V> result;
+        for (const auto& pair : temp) {
+           result.push_back(pair.second);
+        }
+        
+        return result;
+    }
+
+vector<K> getKeysInBucket(int index){
+    vector<K> result;
+    for(auto p:table[index]){
+        result.push_back(p.first);
+    }
+    return result;
+}
+    vector<pair<K,V> > exportSorted(){
+        vector<pair<K, V>> temp;
+        
+    // Collect all pairs in range
+      for (int i = 0; i < this->tableSize; i++) {
+          for (const auto& pair : table[i]) {
+              
+                  temp.push_back(pair);
+               
+            }
+        }
+        
+         sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+    return temp;
+    }
+
+// Add this inside public: of ChainingHashTable
+vector<pair<K, V>> exportSortedByValue() {
+    vector<pair<K, V>> temp;
+
+    // 1. Collect all pairs
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            temp.push_back(pair);
+        }
+    }
+
+    // 2. Sort by VALUE (Count) in Descending Order
+    // If counts are equal, sort by Key (Alphabetical) as a tie-breaker
+    sort(temp.begin(), temp.end(), 
+         [](const pair<K, V>& a, const pair<K, V>& b) {
+             if (a.second != b.second) {
+                 return a.second > b.second; // High count first
+             }
+             return a.first < b.first; // A-Z tie-breaker
+         });
+
+    return temp;
+}
+
+void unionprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==0||p.second==1||p.second==-1) cout<<p.first<<" ";
+            }
+        }
+}
+void untersectprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==0) cout<<p.first<<" ";
+            }
+        }
+}
+void diffprint(){
+      for(auto bucket:table){
+            for(auto p:bucket){
+                    
+                    if(p.second==1) cout<<p.first<<" ";
+            }
+        }
+}
+int isWellDistributed() {
+
+        int total=0;
+        int violation=-1;
+        for(int idx=0; idx<table.size(); idx++){
+        int lngth=bucket_length(idx);
+        total += lngth;
+       }
+       double avg =(double)total/this->tableSize;
+       cout<<"avg chain length: "<<avg<<endl;
+        for(int idx=0; idx<table.size(); idx++){
+        if(bucket_length(idx)>2*avg) violation++;
+       }
+       //cout<<table.size()<<endl;
+       return violation;
+}
+
+void swapValues(K key1, K key2){
+    int dummyhit=0;
+    V * val1= this->search(key1,dummyhit);
+    V * val2=this->search(key2,dummyhit);
+    if (val1 == nullptr || val2 == nullptr) {
+        cout << "Swap failed: One or both keys not found." << endl;
+        return; 
+    }
+    V temp = *val1;
+    *val1=*val2;
+    *val2=temp;
+}
+vector<K> getKeysByValue(const V& targetValue) {
+    vector<K> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        for (const auto& pair : table[i]) {
+            if (pair.second == targetValue) {
+                result.push_back(pair.first);
+            }
+        }
+    }
+    
+    return result;
+}
+
+double getImbalance(){
+    double avg = this->getLoadFactor();
+    double res=0;
+    for(int idx=0; idx<this->tableSize;idx++){
+        int len= this->bucket_length(idx);
+        double ans = (len-avg)*(len-avg);
+        res+=ans;
+    }
+    return res;
+}
+
+void insert(const K &key, V value) override
     {
         unsigned long long h = hashFunc(key);
         int idx = h % this->tableSize;
@@ -311,6 +521,70 @@ public:
     {
         table.resize(size);
     }
+ // Add inside ProbingHashTable class
+int getMaxClusterSize() {
+    int maxCluster = 0;
+    int currentCluster = 0;
+    
+    // 1. Standard Linear Scan
+    for(int i = 0; i < table.size(); i++) {
+        if(table[i].info == ACTIVE) {
+            currentCluster++;
+        } else {
+            maxCluster = max(maxCluster, currentCluster);
+            currentCluster = 0;
+        }
+    }
+    maxCluster = max(maxCluster, currentCluster); 
+
+    // 2. Handle Wrap-Around Case (Circular Array)
+    if(table[0].info == ACTIVE && table[table.size()-1].info == ACTIVE) {
+        int headCluster = 0;
+        for(int i = 0; i < table.size() && table[i].info == ACTIVE; i++) 
+            headCluster++;
+            
+        int tailCluster = 0;
+        for(int i = table.size() - 1; i >= 0 && table[i].info == ACTIVE; i--) 
+            tailCluster++;
+            
+        if(headCluster + tailCluster >= table.size()) 
+            return table.size();
+            
+        maxCluster = max(maxCluster, headCluster + tailCluster);
+    }
+
+    return maxCluster;
+}
+
+int getMaxDisplacement(){
+    int maximum=-1;
+    for(auto p:table){
+        if(p.info==ACTIVE){
+           int current_idx =idx_search(p.key);
+           int main_idx=getProbe(p.key,0);
+           maximum=max(maximum,(current_idx-main_idx+this->tableSize)%this->tableSize);
+        }
+    }
+   return maximum;
+}
+int idx_search(const K &key) 
+    {
+        int i = 0;
+        int idx = getProbe(key, i);
+
+        while (table[idx].info != EMPTY)
+        {
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return idx;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        return -1;
+}
 
 void traverse(void (*callback)(const K&, const V&)) {
     for (const auto& entry : table) {
@@ -320,7 +594,253 @@ void traverse(void (*callback)(const K&, const V&)) {
     }
 }
 
-    void insert(const K &key, V value) override
+void hashOrder(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx;
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].key<<" ";
+    }
+    cout<<endl;
+   }
+}
+ void printprobe(const K& key)  {
+      
+        int i = 0;
+        int idx = getProbe(key, i);
+        
+        if(table[idx].info == EMPTY){
+            cout<<idx<<" ";
+            return;
+        }
+        while (table[idx].info != EMPTY)
+        {
+            cout<<idx<<" ";
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        cout<<idx<<" ";
+    }
+
+ int probelength(const K& key)  {
+      
+        int i = 0;
+        int idx = getProbe(key, i);
+        
+        if(table[idx].info == EMPTY){
+           return i+1;
+        }
+        while (table[idx].info != EMPTY)
+        {
+            
+            if (table[idx].info == ACTIVE && table[idx].key == key)
+            {
+                return i+1;
+            }
+            i++;
+            idx = getProbe(key, i);
+            if (i > this->tableSize * 2)
+                break;
+        }
+        return i+1;
+    
+    }
+int maxProbe(){
+    int maximum=-1;
+    for(int idx=0; idx<table.size(); idx++){
+    if(table[idx].info==ACTIVE){
+        maximum=max(maximum,probelength(table[idx].key));
+    }
+}
+   return maximum;
+}
+    vector<V> rangeQuery(const K& start, const K& end) {
+      vector<V> result;
+      
+   // Iterate through entire table
+       for (int i = 0; i < this->tableSize; i++) {
+          // Only check ACTIVE entries
+         if (table[i].info == ACTIVE) {
+               // Check if key is in range
+           if (table[i].key >= start && table[i].key <= end) {
+            result.push_back(table[i].value);
+        }
+      }
+        }
+      
+       return result;
+    }
+
+int printKeysHashingTo(int targetIndex) {
+    int count=0;
+    for(int idx =0; idx<this->tableSize; idx++){
+        if(table[idx].info==ACTIVE ){
+            int h=getProbe(table[idx].key,0);
+             if (h == targetIndex) {
+                    cout << table[idx].key << " ";
+                    count++;
+                }
+        }
+    }
+    return count;
+}
+K keyWIthMaxCOllision(){
+    int maximum=-1;
+    K mkey ;
+    for(int idx=0; idx<table.size(); idx++){
+    if(table[idx].info==ACTIVE){
+        int len = probelength(table[idx].key);
+        if(len>maximum){
+            maximum=len;
+            mkey=table[idx].key;
+        }
+    }
+}
+   return mkey;
+}
+
+void swapValues(K key1, K key2){
+    int dummyhit=0;
+    V * val1= this->search(key1,dummyhit);
+    V * val2=this->search(key2,dummyhit);
+    V temp = *val1;
+    *val1=*val2;
+    *val2=temp;
+}
+
+vector<K> getKeysByValue(const V& targetValue) {
+    vector<K> result;
+    
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            if (table[i].value == targetValue) {
+                result.push_back(table[i].key);
+            }
+        }
+    }
+    
+    return result;
+}
+void clearDeletedMarkers() {
+    vector<pair<K, V>> activeEntries;
+    
+    // Collect ACTIVE entries
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            activeEntries.push_back({table[i].key, table[i].value});
+        }
+    }
+    
+    // Clear entire table
+    for (int i = 0; i < this->tableSize; i++) {
+        table[i].info = EMPTY;
+    }
+    
+    // Reinsert all active entries
+    //numElements = 0;
+    for (const auto& entry : activeEntries) {
+        table.insert(entry.first, entry.second);
+    }
+    
+    cout << "Cleared all DELETED markers" << endl;
+    cout << "Reinserted " << activeEntries.size() << " entries" << endl;
+}
+
+vector<K> findOrphanedKeys() {
+vector<K> res;
+for(int idx=0; idx<this->tableSize;idx++){
+    if(table[idx].info==ACTIVE){
+        int h=getProbe(table[idx].key,0);
+        if(h!=idx) res.push_back(table[idx].key);
+    }
+}
+return res;
+}
+
+void findAllCollidingPairs() {
+    // 1. Create a temporary map to group keys by their HOME address
+    // Index = Hash Code (0 to tableSize-1)
+    // Value = List of keys that wanted this address
+    vector<vector<K>> homeBuckets(this->tableSize);
+
+    // 2. Iterate through the ACTUAL table to find all active keys
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info == ACTIVE) {
+            // Calculate where this key ORIGINALLY wanted to be
+            int homeIndex = getProbe(table[i].key, 0);
+            
+            // Add it to that home bucket
+            homeBuckets[homeIndex].push_back(table[i].key);
+        }
+    }
+
+    // 3. Print pairs from buckets that have more than 1 key
+    cout << "Colliding Key Pairs (Primary Hash):" << endl;
+    bool foundAny = false;
+
+    for (int i = 0; i < this->tableSize; i++) {
+        if (homeBuckets[i].size() > 1) {
+            foundAny = true;
+            cout << "Index " << i << ": ";
+            
+            // Print all keys in this bucket
+            for (size_t j = 0; j < homeBuckets[i].size(); j++) {
+                cout << homeBuckets[i][j];
+                if (j < homeBuckets[i].size() - 1) cout << ", ";
+            }
+            cout << " (Count: " << homeBuckets[i].size() << ")" << endl;
+        }
+    }
+
+    if (!foundAny) cout << "No collisions found." << endl;
+}
+
+vector<K> getKeysVisitingIndex(int targetIndex) {
+    vector<K> visitors;
+
+    // Iterate over every slot in the table
+    for (int i = 0; i < this->tableSize; i++) {
+        
+        // We only care about keys that are actually in the table
+        if (table[i].info == ACTIVE) {
+            K currentKey = table[i].key;
+            
+            // --- REPLAY PROBE SEQUENCE ---
+            int step = 0;
+            int probeIdx = getProbe(currentKey, step);
+            
+            while (true) {
+                // 1. Did this key step on the target index?
+                if (probeIdx == targetIndex) {
+                    visitors.push_back(currentKey);
+                    break; // Found it! Move to the next key.
+                }
+
+                // 2. Did we reach the key's ACTUAL location?
+                // If we reached index 'i' (where the key lives now) and 
+                // still haven't seen targetIndex, we never will.
+                if (probeIdx == i) {
+                    break; 
+                }
+
+                // 3. Move to next step in the sequence
+                step++;
+                probeIdx = getProbe(currentKey, step);
+
+                // Safety break (infinite loop protection)
+                if (step > this->tableSize) break;
+            }
+        }
+    }
+    return visitors;
+}
+//basic functions
+void insert(const K &key, V value) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -349,7 +869,7 @@ void traverse(void (*callback)(const K&, const V&)) {
         this->checkResize();
     }
 
-    V *search(const K &key, int &hits) override
+V *search(const K &key, int &hits) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -370,7 +890,7 @@ void traverse(void (*callback)(const K&, const V&)) {
         return nullptr;
     }
 
-    void remove(const K &key) override
+void remove(const K &key) override
     {
         int i = 0;
         int idx = getProbe(key, i);
@@ -392,7 +912,7 @@ void traverse(void (*callback)(const K&, const V&)) {
         }
     }
 
-    void rehash(int newSize) override
+void rehash(int newSize) override
     {
         vector<HashEntry<K, V>> oldTable = table;
         table.clear();
