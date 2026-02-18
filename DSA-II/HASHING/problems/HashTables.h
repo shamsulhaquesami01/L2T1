@@ -42,15 +42,6 @@ int prevPrime(int n)
 }
 
 // Polynomial Rolling Hash
-
-unsigned long long inthash(const int& key) {
-    // Cast to unsigned int internally for bitwise operations if needed
-    unsigned int ukey = (unsigned int)key; 
-    
-    ukey = (ukey ^ 61) ^ (ukey >> 16);
-    ukey = ukey * 2654435769U;
-    return ukey ^ (ukey >> 16);
-}
 unsigned long long Hash1(const string &key)
 {
     unsigned long long hashVal = 0;
@@ -60,7 +51,6 @@ unsigned long long Hash1(const string &key)
     }
     return hashVal;
 }
-
 // DJB2 Hash
 unsigned long long Hash2(const string &key)
 {
@@ -71,6 +61,62 @@ unsigned long long Hash2(const string &key)
     }
     return hash;
 }
+//fnv-1a
+unsigned long long Hash3(const string& key) {
+    const unsigned long long FNV_prime = 1099511628211ULL;
+    const unsigned long long offset_basis = 14695981039346656037ULL;
+    
+    unsigned long long hash = offset_basis;
+    for (char c : key) {
+        hash ^= (unsigned long long)c;
+        hash *= FNV_prime;
+    }
+    return hash;
+}
+unsigned long long CharHash(const char& key) {
+    return (unsigned long long)key;
+}
+
+//int hash
+unsigned long long inthash(const int& key) {
+    // Cast to unsigned int internally for bitwise operations if needed
+    unsigned int ukey = (unsigned int)key; 
+    
+    ukey = (ukey ^ 61) ^ (ukey >> 16);
+    ukey = ukey * 2654435769U;
+    return ukey ^ (ukey >> 16);
+}
+unsigned long long IntHash2(const int& key) {
+    return ((unsigned long long)key * 2654435761U) | 1; 
+}
+
+//others
+unsigned long long LongHash(const long long& key) {
+    unsigned long long ukey = (unsigned long long)key;
+
+    return (ukey ^ (ukey >> 32)) * 2654435769U;
+}
+unsigned long long PairHash(const pair<int, int>& key) {
+    unsigned long long h1 = inthash(key.first);
+    unsigned long long h2 = inthash(key.second);
+    
+    // Boost Hash Combine Logic
+    // h1 ^ (h2 + MagicConstant + (h1 shifted left) + (h1 shifted right))
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+}
+unsigned long long StringPairHash(const pair<string, string>& key) {
+    unsigned long long h1 = Hash1(key.first);
+    unsigned long long h2 = Hash1(key.second);
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+}
+unsigned long long VectorHash(const vector<int>& key) {
+    unsigned long long seed = 0;
+    for (int i : key) {
+        // Combine current seed with the next element's hash
+        seed ^= inthash(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+}
 
 unsigned long long AuxHash(const string &key)
 {
@@ -78,6 +124,9 @@ unsigned long long AuxHash(const string &key)
     for (char c : key)
         hash += c;
     return (hash == 0) ? 1 : hash;
+}
+unsigned long long AuxPair(const pair<int, int>& key) {
+    return 1 + ((key.first + key.second) % 97);
 }
 
 enum ResolutionMethod
@@ -157,13 +206,37 @@ public:
         }
     }
 }
-    void hashOrder(){
+    void printkeys(){
         int i=0;
         for(auto bucket:table){
             cout<<"bucket "<<i<<" ";
             for(auto p:bucket){
                     
                     cout<<p.first<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    void printvalues(){
+        int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<p.second<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    void printall(){
+             int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<"key: "<<p.first<<" value : "<<p.second<<"  ";
             }
             cout<<endl;
             i++;
@@ -248,7 +321,7 @@ vector<K> getKeysInBucket(int index){
     }
     return result;
 }
-    vector<pair<K,V> > exportSorted(){
+vector<pair<K,V> > exportSorted(){
         vector<pair<K, V>> temp;
         
     // Collect all pairs in range
@@ -290,7 +363,18 @@ vector<pair<K, V>> exportSortedByValue() {
 
     return temp;
 }
+K getMedianKey() {
+    // Re-use your exportSorted function!
+    vector<pair<K, V>> sortedData = this->exportSorted(); 
+    
+    if (sortedData.empty()) {
+        return K(); // Return default if empty
+    }
 
+    // If odd size: middle element. If even: lower middle.
+    int midIndex = sortedData.size() / 2;
+    return sortedData[midIndex].first;
+}
 void unionprint(){
       for(auto bucket:table){
             for(auto p:bucket){
@@ -397,10 +481,8 @@ void insert(const K &key, V value) override
         table[idx].push_back({key, value});
         this->numElements++;
         this->insertionsSinceExpand++;
-        
     int K_LIMIT = 5; // Example bound
     if (table[idx].size() > K_LIMIT) {
-        // Force expansion even if load factor is low
         this->rehash(nextPrime(this->tableSize * 2));
     }
         this->checkResize();
@@ -555,7 +637,34 @@ int getMaxClusterSize() {
 
     return maxCluster;
 }
+// Add to ProbingHashTable
+int countClusters() {
+    if (this->numElements == 0) return 0;
 
+    int clusters = 0;
+    bool inCluster = false;
+
+    // Scan the table linearly
+    for (int i = 0; i < this->tableSize; i++) {
+        if (table[i].info != EMPTY) {
+            if (!inCluster) {
+                clusters++;
+                inCluster = true;
+            }
+        } else {
+            inCluster = false;
+        }
+    }
+
+    // Check Wrap-Around:
+    // If table[0] and table[LAST] are both non-empty, they are actually ONE cluster.
+    // We counted them as two separate ones, so subtract 1.
+    if (table[0].info != EMPTY && table[this->tableSize - 1].info != EMPTY) {
+        clusters--;
+    }
+
+    return clusters;
+}
 int getMaxDisplacement(){
     int maximum=-1;
     for(auto p:table){
@@ -594,11 +703,30 @@ void traverse(void (*callback)(const K&, const V&)) {
     }
 }
 
-void hashOrder(){
+//jushrdfg
+void printkeys(){
    for(int idx=0; idx<table.size(); idx++){
-    cout<<"index "<<idx;
+    cout<<"index "<<idx<<" ";
     if(table[idx].info==ACTIVE){
         cout<<table[idx].key<<" ";
+    }
+    cout<<endl;
+   }
+}
+void printvalues(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx<<" ";
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].value<<" ";
+    }
+    cout<<endl;
+   }
+}
+void printall(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx<<" ";
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].key<<" "<<table[idx].value<<"  ";
     }
     cout<<endl;
    }
@@ -742,9 +870,9 @@ void clearDeletedMarkers() {
     }
     
     // Reinsert all active entries
-    //numElements = 0;
+    this->numElements = 0;
     for (const auto& entry : activeEntries) {
-        table.insert(entry.first, entry.second);
+        this->insert(entry.first, entry.second);
     }
     
     cout << "Cleared all DELETED markers" << endl;
@@ -839,6 +967,49 @@ vector<K> getKeysVisitingIndex(int targetIndex) {
     }
     return visitors;
 }
+
+vector<pair<K, V>> exportSorted() {
+        vector<pair<K, V>> temp;
+        
+        // Collect all ACTIVE pairs from the flat table
+        for (int i = 0; i < this->tableSize; i++) {
+            if (table[i].info == ACTIVE) {
+                // Construct a pair and push it
+                temp.push_back({table[i].key, table[i].value});
+            }
+        }
+        
+        // Sort by Key
+        sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 return a.first < b.first;
+            });
+            
+        return temp;
+    }
+
+    // 2. Export Sorted by Value (Descending) - For "Top K" / Frequency Problems
+ vector<pair<K, V>> exportSortedByValue() {
+        vector<pair<K, V>> temp;
+
+        // Collect all ACTIVE pairs
+        for (int i = 0; i < this->tableSize; i++) {
+            if (table[i].info == ACTIVE) {
+                temp.push_back({table[i].key, table[i].value});
+            }
+        }
+
+        // Sort: High Values First, Alphabetical Tie-Breaker
+        sort(temp.begin(), temp.end(), 
+             [](const pair<K, V>& a, const pair<K, V>& b) {
+                 if (a.second != b.second) {
+                     return a.second > b.second; // Descending Value
+                 }
+                 return a.first < b.first; // Ascending Key (Tie-breaker)
+             });
+
+        return temp;
+    }
 //basic functions
 void insert(const K &key, V value) override
     {

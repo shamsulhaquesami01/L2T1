@@ -15,7 +15,7 @@ bool checkIsomorphic(string s, string t) {
     ChainingHashTable<char, char> t_to_s(CharHash); // Map T chars to S chars
     int dummyHits = 0;
 
-    for (int i = 0; i < s.length(); i++) {
+    for (int i = 0; i < s.length(); i++){
         char c1 = s[i];
         char c2 = t[i];
 
@@ -29,7 +29,7 @@ bool checkIsomorphic(string s, string t) {
             // Case 2: c1 is new, but c2 has been used by someone else
             if (mappedFrom != nullptr) return false;
 
-            // Create new mapping
+            //Create new mapping
             s_to_t.insert(c1, c2);
             t_to_s.insert(c2, c1);
         }
