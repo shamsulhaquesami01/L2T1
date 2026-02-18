@@ -157,13 +157,37 @@ public:
         }
     }
 }
-    void hashOrder(){
+    void printkeys(){
         int i=0;
         for(auto bucket:table){
             cout<<"bucket "<<i<<" ";
             for(auto p:bucket){
                     
                     cout<<p.first<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    void printvalues(){
+        int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<p.second<<" ";
+            }
+            cout<<endl;
+            i++;
+        }
+    }
+    void printall(){
+             int i=0;
+        for(auto bucket:table){
+            cout<<"bucket "<<i<<" ";
+            for(auto p:bucket){
+                    
+                    cout<<"key: "<<p.first<<" value : "<<p.second<<"  ";
             }
             cout<<endl;
             i++;
@@ -248,7 +272,7 @@ vector<K> getKeysInBucket(int index){
     }
     return result;
 }
-    vector<pair<K,V> > exportSorted(){
+vector<pair<K,V> > exportSorted(){
         vector<pair<K, V>> temp;
         
     // Collect all pairs in range
@@ -397,7 +421,6 @@ void insert(const K &key, V value) override
         table[idx].push_back({key, value});
         this->numElements++;
         this->insertionsSinceExpand++;
-        
     int K_LIMIT = 5; // Example bound
     if (table[idx].size() > K_LIMIT) {
         // Force expansion even if load factor is low
@@ -594,11 +617,29 @@ void traverse(void (*callback)(const K&, const V&)) {
     }
 }
 
-void hashOrder(){
+void printkeys(){
    for(int idx=0; idx<table.size(); idx++){
-    cout<<"index "<<idx;
+    cout<<"index "<<idx<<" ";
     if(table[idx].info==ACTIVE){
         cout<<table[idx].key<<" ";
+    }
+    cout<<endl;
+   }
+}
+void printvalues(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx<<" ";
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].value<<" ";
+    }
+    cout<<endl;
+   }
+}
+void printall(){
+   for(int idx=0; idx<table.size(); idx++){
+    cout<<"index "<<idx<<" ";
+    if(table[idx].info==ACTIVE){
+        cout<<table[idx].key<<" "<<table[idx].value<<"  ";
     }
     cout<<endl;
    }
