@@ -1,0 +1,36 @@
+transform(s.begin(), s.end(), s.begin(), ::tolower);
+// "Hello" becomes "hello"
+
+
+
+string line = "apple,100";
+size_t commaPos = line.find(','); // Find split point
+
+if (commaPos != string::npos) {
+    string name = line.substr(0, commaPos); // "apple"
+    string numStr = line.substr(commaPos + 1); // "100" (from comma+1 to end)
+    
+    int value = stoi(numStr); // Convert "100" to integer 100
+}
+
+sort(s.begin(), s.end())
+reverse(s.begin(),s.end())
+to_string(int) int a = stoi(s)
+s.insert(pos, str)
+s.erase(pos, len)
+
+
+set<int> s;                // Stores integers, sorted ascending
+set<string> words;         // Stores strings, sorted alphabetically
+set<int, greater<int>> s2; // Stores integers, sorted DESCENDING
+if (s.find(5) != s.end()) {
+    // Found it
+}
+
+s.lower_bound(k)	≥k	Iterator to first element greater than or equal to k.
+s.upper_bound(k)	>k	Iterator to first element strictly greater than k.
+
+s.begin() , s.end(). not s[0]
+
+
+
