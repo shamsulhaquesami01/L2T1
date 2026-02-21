@@ -17,12 +17,6 @@
 -- below). Then write your trigger on the test TEMP_EMPLOYEES table. To avoid the “mutating”
 -- trigger issue, all your PL/SQL statements should perform validation checks on the original
 -- EMPLOYEES table (instead of TEMP_EMPLOYEES table).
-
-
-
-
-
-
 DROP TABLE TEMP_EMPLOYEES;
 CREATE TABLE TEMP_EMPLOYEES AS SELECT * FROM EMPLOYEES;
 SELECT * FROM TEMP_EMPLOYEES;
@@ -55,3 +49,42 @@ BEGIN
     end;
     /
 
+-- Write a Procedure named RANK JOBS that takes one integer MIN HIRED COUNT as input. It
+-- ranks the jobs whose JOB
+-- ID matches with the ID extracted from its JOB
+-- TITLE. The extracted-- ID contains the first two letters of the first word of the title, followed by an underscore, followed
+-- by the first three letters of the second word (if any) of the title. For example, from the title
+-- ‘Sales Representative  the extracted ID would be ‘SA
+-- REP’ If the actual JOB
+-- ID also is ‘SA REP’ then there is a match.
+-- The jobs having this match, which also have to have their number of hired employees no less
+-- than MIN HIRED COUNT, are then ranked by the Procedure RANK JOBS. The ranking is done according to the descending order of
+-- their average salaries, with the job having the highest average salary ranked as 1. Finally, insert the ranks of the jobs in the JOB
+-- RANK table given below.
+
+CREATE OR REPLACE PROCEDURE RANK_JOBS(Min_hired_count in number ) IS
+BEGIN
+  
+    FOR R IN (
+        SELECT job_title, emp_count, min_salary, max_salary, avg_salary,
+               RANK() OVER (ORDER BY avg_salary DESC) as rnk
+        FROM (
+            -- Subquery to compute counts/avgs so the aliases are available for RANK()
+            SELECT J.Job_title, 
+                   (SELECT COUNT(*) FROM employees e2 WHERE e2.JOB_ID = j.JOB_ID) as emp_count, 
+                   j.min_salary, 
+                   j.max_salary, 
+                   (SELECT AVG(e2.salary) FROM employees e2 WHERE e2.JOB_ID = j.JOB_ID) as avg_salary
+            FROM JOBS J
+            where (SELECT COUNT(*) FROM employees e2 WHERE e2.JOB_ID = j.JOB_ID) > Min_hired_count and
+            JOB_ID = (SUBSTR(JOB_TITLE, 1, 2) || '_' || SUBSTR(REGEXP_SUBSTR(JOB_TITLE, '\S+', 1, 2), 1, 3))
+        )
+    )
+    LOOP
+        -- Access fields via the record variable 'R'
+        DBMS_OUTPUT.PUT_LINE('rank= ' || R.rnk || ' | job = ' || R.job_title || ' | emp count = ' || R.emp_count);
+    END LOOP;
+END;
+/
+
+execute RANK_JOBS(1);
