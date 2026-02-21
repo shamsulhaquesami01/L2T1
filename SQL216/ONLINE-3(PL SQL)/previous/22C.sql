@@ -1,17 +1,22 @@
 create or replace function is_ready_for_promotion(eid in number) 
 return  varchar2 is
 id number;
+s_count number :=0;
+salari number;
+shomoy number;
+mid number;
 BEGIN
-    for R in (select e.employee_id  from employees e 
-    where MONTHS_BETWEEN(sysdate,e.HIRE_DATE) >=60 AND
-    e.salary > (select (j.min_salary+j.max_salary)/2 from jobs j where e.job_id=j.job_id) and
-    1<=(select count(e2.employee_id) from employees e2 where e2.MANAGER_ID=e.employee_id))
-    loop
- IF eid = R.employee_id THEN 
-            RETURN 'yes';
-        END IF;
-    END LOOP;
-    RETURN 'no';
+    select MONTHS_BETWEEN(sysdate,e.HIRE_DATE) into shomoy from employees e where e.employee_id=eid;
+    select count(e2.employee_id) into s_count from employees e2 where e2.MANAGER_ID=eid;
+    select (j.min_salary+j.max_salary)/2 into mid from jobs j where j.job_id=(
+        select job_id from employees e where e.employee_id=eid
+    );
+    select e.Salary into salari from Employees e where e.employee_id=eid;
+    if(shomoy>60 and s_count>=1 and salari>mid )THEN 
+    RETURN 'yes';
+    else return 'no';
+    END IF;
+
 EXCEPTION
 WHEN NO_DATA_FOUND THEN
 RETURN 'No employee found.' ;
@@ -47,8 +52,14 @@ BEGIN
     where j.job_id=e.JOB_ID) + 0.1 * (select avg(e2.salary) from EMPLOYEES e2 where e.DEPARTMENT_ID=e2.DEPARTMENT_ID and e.DEPARTMENT_ID is not null)
     end
     where 12 <= MONTHS_BETWEEN(newsewt ,e.hire_date);
-    end;
-    /
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.PUT_LINE('No employee found.') ;
+when others THEN
+DBMS_OUTPUT.PUT_LINE('No employee found.') ;
+end;
+/
+
 
 execute UPDATE_SALARY;
 

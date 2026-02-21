@@ -27,6 +27,8 @@ SITY := R.CITY;
 END IF ;
 END LOOP ;
 DBMS_OUTPUT.PUT_LINE(RG ||ROUND( MIN_YEAR)||NAAM||TITEL||CANTRY||DEPT||SITY);
+EXCEPTION
+WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('error');
 END;
 /    
 
@@ -42,12 +44,12 @@ SELECT * FROM JOBS;
 
 CREATE OR REPLACE PROCEDURE RANK_JOBS IS
 BEGIN
-    -- Using a cursor loop handles the 'INTO' and 'Multiple Rows' issues automatically
+   
     FOR R IN (
         SELECT job_title, emp_count, min_salary, max_salary, avg_salary,
                RANK() OVER (ORDER BY emp_count DESC, avg_salary DESC) as rnk
         FROM (
-            -- Subquery to compute counts/avgs so the aliases are available for RANK()
+            
             SELECT J.Job_title, 
                    (SELECT COUNT(*) FROM employees e2 WHERE e2.JOB_ID = j.JOB_ID) as emp_count, 
                    j.min_salary, 
@@ -57,7 +59,6 @@ BEGIN
         )
     )
     LOOP
-        -- Access fields via the record variable 'R'
         DBMS_OUTPUT.PUT_LINE('rank= ' || R.rnk || ' | job = ' || R.job_title || ' | emp count = ' || R.emp_count);
     END LOOP;
 END;
@@ -74,7 +75,7 @@ DECLARE
     v_is_manager    NUMBER := 0;
     v_my_sub_count  NUMBER := 0;
 BEGIN
-    -- Check if the deleted employee was a manager
+    
     SELECT COUNT(*) INTO v_is_manager 
     FROM EMPLOYEES 
     WHERE MANAGER_ID = :OLD.EMPLOYEE_ID;
@@ -87,12 +88,10 @@ BEGIN
         BEGIN
             SELECT emp_id INTO v_substitute_id
             FROM (
-                SELECT E.EMPLOYEE_ID as emp_id, COUNT(S.EMPLOYEE_ID) as sub_count
-                FROM EMPLOYEES E
-                LEFT JOIN EMPLOYEES S ON E.EMPLOYEE_ID = S.MANAGER_ID
-                WHERE E.EMPLOYEE_ID <> :OLD.EMPLOYEE_ID
-                GROUP BY E.EMPLOYEE_ID
-                ORDER BY ABS(COUNT(S.EMPLOYEE_ID) - v_my_sub_count) ASC, E.EMPLOYEE_ID ASC
+                SELECT e.manager_id as emp_id ,count(e.employee_id) from employees
+                where e.manager_id is not null and e.manager_id <>:old.employee_id
+                 e group by e.manager_id 
+                ORDER BY ABS(COUNT(e.EMPLOYEE_ID) - v_my_sub_count) ASC
             )
             WHERE ROWNUM = 1;
         EXCEPTION WHEN NO_DATA_FOUND THEN v_substitute_id := NULL;

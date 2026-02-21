@@ -1,0 +1,216 @@
+🔥 ADVANCED SQL EXAM CHEAT SHEET (HR Schema)
+
+> Purpose: One-stop resource you can carry into the lab exam.
+Covers ALL tricky patterns, logical traps, and frequently asked SQL constructs.
+
+
+
+
+---
+
+1️⃣ AGGREGATES & AVERAGES (Core Patterns)
+
+🔹 Salary > Department Average
+
+select e.first_name, e.salary
+from employees e
+where e.salary > (
+    select avg(e2.salary)
+    from employees e2
+    where e2.department_id = e.department_id
+);
+
+🔹 Salary > Company Average
+
+where salary > (select avg(salary) from employees)
+
+
+---
+
+2️⃣ HIGHEST / LOWEST SALARY PROBLEMS
+
+🔹 Highest Salary in Each Department (JOIN ONLY – examiner favorite)
+
+select e.*
+from employees e
+left join employees x
+  on e.department_id = x.department_id
+ and x.salary > e.salary
+where x.employee_id is null;
+
+🔹 Lowest Salary in Each Department
+
+select e.*
+from employees e
+left join employees x
+  on e.department_id = x.department_id
+ and x.salary < e.salary
+where x.employee_id is null;
+
+
+---
+
+3️⃣ SECOND HIGHEST SALARY (IMPORTANT)
+
+🔹 Second Highest Salary in Each Department (by VALUE)
+
+select e.*
+from employees e
+where 1 = (
+    select count(distinct e2.salary)
+    from employees e2
+    where e2.department_id = e.department_id
+      and e2.salary > e.salary
+);
+
+✔ Handles ties correctly
+
+
+---
+
+4️⃣ RANKING (SUBQUERY ONLY)
+
+🔹 RANK() behavior (1,2,2,4)
+
+select e.last_name,
+       (select count(*) from employees x where x.salary > e.salary) + 1 as rnk
+from employees e;
+
+🔹 DENSE_RANK() behavior (1,2,2,3)
+
+select e.last_name,
+       (select count(distinct x.salary) from employees x where x.salary > e.salary) + 1 as drnk
+from employees e;
+
+
+---
+
+5️⃣ EXISTS / NOT EXISTS / NOT IN (TRAPS)
+
+🔹 Employees NOT in JOB_HISTORY (SAFE)
+
+select *
+from employees e
+where not exists (
+    select 1 from job_history j
+    where j.employee_id = e.employee_id
+);
+
+⚠️ NOT IN TRAP (NULL kills result)
+
+-- ❌ avoid if subquery can return NULL
+where employee_id not in (select employee_id from job_history)
+
+
+---
+
+6️⃣ AT LEAST / EVERY / EXACTLY CONDITIONS
+
+🔹 Managers with AT LEAST 3 employees
+
+where 3 <= (
+    select count(*) from employees e2
+    where e2.manager_id = e.manager_id
+)
+
+🔹 EVERY employee satisfies condition
+
+-- total = qualified
+total_count = qualified_count
+
+🔹 EXACTLY ONE (XOR)
+
+(A or B) and not (A and B)
+
+
+---
+
+7️⃣ COUNT-BASED LOGIC TRICKS
+
+🔹 Departments with more than 5 employees
+
+where 5 < (
+    select count(*) from employees e2
+    where e2.department_id = e.department_id
+)
+
+🔹 Departments with NO employees
+
+where not exists (
+    select 1 from employees e2
+    where e2.department_id = d.department_id
+)
+
+
+---
+
+8️⃣ SET OPERATIONS (NO AND / OR / NOT)
+
+🔹 Combine current + past jobs
+
+select employee_id, count(distinct job_id)
+from (
+    select employee_id, job_id from employees
+    union
+    select employee_id, job_id from job_history
+)
+group by employee_id;
+
+
+---
+
+9️⃣ SELF JOIN ESSENTIALS
+
+🔹 Employees in same department
+
+select e1.employee_id, e2.employee_id
+from employees e1
+join employees e2
+  on e1.department_id = e2.department_id
+ and e1.employee_id <> e2.employee_id;
+
+
+---
+
+🔟 JOIN THEORY (MEMORIZE)
+
+Join Type	Meaning
+
+INNER JOIN	Matching rows only
+LEFT JOIN	All left + matched right
+RIGHT JOIN	All right + matched left
+ANTI JOIN	left join + is null
+
+
+
+---
+
+1️⃣1️⃣ GROUP BY + HAVING (FILTER GROUPS)
+
+select department_id
+from employees
+group by department_id
+having avg(salary) > (select avg(salary) from employees);
+
+
+---
+
+1️⃣2️⃣ COMMON EXAM MISTAKES ❌
+
+❌ Using count(*) instead of count(distinct) ❌ Forgetting parentheses with AND / OR ❌ Using NOT IN with NULLs ❌ Confusing RANK vs DENSE_RANK ❌ Using WHERE instead of HAVING
+
+
+---
+
+🧠 FINAL MEMORY RULES
+
+• "Every" ⇒ total = qualified
+• Second highest ⇒ count(distinct salary > current)
+• NOT EXISTS > NOT IN
+• Gaps needed ⇒ RANK logic
+• No gaps ⇒ DENSE RANK logic
+
+
+---
+
+✅ If you can understand every block here, you will not lose marks in advanced SQL lab.
