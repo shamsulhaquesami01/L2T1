@@ -30,30 +30,13 @@ DBMS_OUTPUT.PUT_LINE(RG ||ROUND( MIN_YEAR)||NAAM||TITEL||CANTRY||DEPT||SITY);
 END;
 /    
 
-EXECUTE LONGEST_SERVING_EMPLOYEE('Americas');
+EXECUTE LONGEST_SERVING_EMPLOYEE('Americas');kjhgf
 SELECT * FROM EMPLOYEES;
 SELECT * FROM REGIONS;
 SELECT * FROM DEPARTMENTS;
 SELECT * FROM LOCATIONS;
 SELECT * FROM JOBS;
 
-
-CREATE OR REPLACE PROCEDURE RANK_JOBS IS
-
-BEGIN
-    SELECT  job_title,  emp_count, min_salary,max_salary, avg_salary,rnk
-    FROM (
-        SELECT J.Job_title, (select count(*) from employees e2 where e2.JOB_ID=j.JOB_ID)
-        as emp_count, j.min_salary, j.max_salary, (select avg(e2.salary) from employees e2 where e2.JOB_ID=j.JOB_ID)
-        as avg_salary,
-        RANK() OVER (ORDER BY emp_count desc, avg_salary desc) as rnk
-        FROM JOBS J
-    );
-
-   DBMS_OUTPUT.PUT_LINE('rank= '||rnk||' job = '||job_title||' emp count='||emp_count);
-
-    END;
-    /
 
 
 
