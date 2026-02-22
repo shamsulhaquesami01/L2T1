@@ -1,98 +1,339 @@
-SUBSTR(string, start, length)
-SUBSTR('MMORALES', 1, 2)     -- 'MM' (first 2 chars)
-SUBSTR('MMORALES', -2, 2)    -- 'ES' (last 2 chars)
-SUBSTR('MMORALES', 3)        -- 'ORALES' (from pos 3 to end)
-SUBSTR('MMORALES', -3)       -- 'LES' (last 3 chars)
+-- =============================================
+-- FUNCTION 1: SUBORDINATE COUNT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_SUB_COUNT(eid IN NUMBER) 
+RETURN NUMBER IS
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM EMPLOYEES WHERE MANAGER_ID = eid;
+    RETURN cnt;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
--- TRAP: -1.2 is NOT valid, use -2,2
-SUBSTR(email, -1.2)   -- WRONG
-SUBSTR(email, -2, 2)  -- CORRECT
+-- USAGE:
+IF GET_SUB_COUNT(:OLD.EMPLOYEE_ID) > 0 THEN  -- is a manager
+IF GET_SUB_COUNT(mgr_id) >= 5 THEN           -- manages 5+
+s_count := GET_SUB_COUNT(R.EMPLOYEE_ID);     -- store count
 
-INSTR('Sales Representative', ' ')      -- position of first space = 6
-INSTR('Sales Representative', ' ', 1, 2)-- position of 2nd space
-
--- Used to extract words:
-SUBSTR(title, 1, INSTR(title, ' ') - 1)          -- first word
-SUBSTR(title, INSTR(title, ' ') + 1)              -- everything after first space
-
--- Full extracted ID
-UPPER(SUBSTR(job_title, 1, 2)) || '_' || 
-UPPER(SUBSTR(job_title, INSTR(job_title, ' ') + 1, 3))
--- gives 'SA_REP'
-UPPER('sales')        -- 'SALES'
-LOWER('SALES')        -- 'sales'
-INITCAP('sales rep')  -- 'Sales Rep'
-
-TRIM('  hello  ')     -- 'hello' removes both sides
-LTRIM('  hello')      -- 'hello' removes left only
-RTRIM('hello  ')      -- 'hello' removes right only
-TRIM('x' FROM 'xxhelloxx')  -- 'hello' removes specific char
-REPLACE('Hello World', 'World', 'Oracle')  -- 'Hello Oracle'
-REPLACE(str, ' ', '_')                     -- replace spaces with underscore
+---subordite in department
+CREATE OR REPLACE FUNCTION COUNT_SUBS_IN_DEPT(mid IN NUMBER, did IN NUMBER) 
+RETURN NUMBER IS
+    v_cnt NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_cnt FROM EMPLOYEES 
+    WHERE MANAGER_ID = mid AND DEPARTMENT_ID = did;
+    RETURN v_cnt;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
 
+-- =============================================
+-- FUNCTION 2: YEARS WORKED
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_YEARS(eid IN NUMBER) 
+RETURN NUMBER IS
+    yrs NUMBER;
+BEGIN
+    SELECT MONTHS_BETWEEN(SYSDATE, HIRE_DATE) / 12 
+    INTO yrs FROM EMPLOYEES WHERE EMPLOYEE_ID = eid;
+    RETURN yrs;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
-MONTHS_BETWEEN(SYSDATE, HIRE_DATE)        -- positive = hire date is older
-MONTHS_BETWEEN(SYSDATE, HIRE_DATE) / 12   -- convert to years
-MONTHS_BETWEEN(SYSDATE, HIRE_DATE) > 60   -- more than 5 years
-MONTHS_BETWEEN(SYSDATE, HIRE_DATE) > 12   -- past 1 year probation
-
--- TRAP: order matters!
-MONTHS_BETWEEN(SYSDATE, HIRE_DATE)   -- positive (correct)
-MONTHS_BETWEEN(HIRE_DATE, SYSDATE)   -- negative (wrong, common mistake)
-
-ADD_MONTHS(HIRE_DATE, 12)    -- add 1 year to hire date
-ADD_MONTHS(SYSDATE, -6)      -- 6 months ago
-ADD_MONTHS(HIRE_DATE, n*12)  -- add n years
-
-TRUNC(SYSDATE)                -- removes time, keeps date only
-TRUNC(SYSDATE, 'YEAR')        -- Jan 1 of current year
-TRUNC(SYSDATE, 'MONTH')       -- 1st of current month
-
-EXTRACT(YEAR FROM HIRE_DATE)    -- gets year number
-EXTRACT(MONTH FROM HIRE_DATE)   -- gets month number
-EXTRACT(DAY FROM HIRE_DATE)     -- gets day number
-
--- Example use
-WHERE EXTRACT(YEAR FROM HIRE_DATE) = 2005  -- hired in 2005
-
-TO_DATE('2024-01-15', 'YYYY-MM-DD')   -- string to date
-TO_CHAR(HIRE_DATE, 'DD-MON-YYYY')     -- date to string
-TO_CHAR(HIRE_DATE, 'YYYY')            -- just the year as string
-TO_CHAR(SALARY, '99999.99')           -- number to formatted string
+-- USAGE:
+IF GET_YEARS(eid) >= 5 THEN      -- worked 5+ years
+IF GET_YEARS(eid) <= 1 THEN      -- probation period
+bonus := TRUNC(GET_YEARS(eid)/n)*m;  -- bonus calc
 
 
-SYSDATE - HIRE_DATE          -- difference in DAYS (not months)
-SYSDATE - 30                 -- 30 days ago
-HIRE_DATE + 365              -- one year after hire
+-- =============================================
+-- FUNCTION 3: IS PERMANENT (past 1 year probation)
+-- =============================================
+CREATE OR REPLACE FUNCTION IS_PERMANENT(eid IN NUMBER) 
+RETURN NUMBER IS
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM EMPLOYEES 
+    WHERE EMPLOYEE_ID = eid 
+    AND MONTHS_BETWEEN(SYSDATE, HIRE_DATE) > 12;
+    RETURN cnt;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
-ROUND(AVG(SALARY), 2)    -- round to 2 decimal places
-ROUND(4.567, 1)          -- gives 4.6
-TRUNC(4.9)               -- gives 4 (cuts, does not round)
-TRUNC(6/5)               -- gives 1 (important for bonus calc!)
-CEIL(4.1)                -- gives 5 (round up always)
-FLOOR(4.9)               -- gives 4 (round down always)
-
-NVL(commission_pct, 0)           -- replace NULL with 0
-NVL(manager_id, -1)              -- replace NULL with -1
-NVL2(commission_pct, 'HAS', 'NO')-- if not null→first, if null→second
-COALESCE(col1, col2, col3, 0)    -- first non-null value
-
-MOD(10, 3)    -- gives 1 (remainder)
-MOD(years, n) -- check if evenly divisible
+-- USAGE:
+IF IS_PERMANENT(R.EMPLOYEE_ID) = 1 THEN   -- is permanent
+IF IS_PERMANENT(eid) = 0 THEN CONTINUE;   -- skip non-permanent
 
 
--- Rank with gaps (1,2,2,4)
-RANK() OVER (ORDER BY salary DESC)
+-- =============================================
+-- FUNCTION 4: IS MANAGER (official dept head)
+-- =============================================
+CREATE OR REPLACE FUNCTION IS_DEPT_MANAGER(eid IN NUMBER, did IN NUMBER) 
+RETURN NUMBER IS
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM DEPARTMENTS 
+    WHERE DEPARTMENT_ID = did AND MANAGER_ID = eid;
+    RETURN cnt;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
--- Rank without gaps (1,2,2,3)
-DENSE_RANK() OVER (ORDER BY salary DESC)
+-- USAGE:
+IF IS_DEPT_MANAGER(:OLD.EMPLOYEE_ID, :OLD.DEPARTMENT_ID) = 1 THEN
 
--- Row number always unique (1,2,3,4)
-ROW_NUMBER() OVER (ORDER BY salary DESC)
 
--- Rank within groups (partition)
-RANK() OVER (PARTITION BY department_id ORDER BY salary DESC)
+-- =============================================
+-- FUNCTION 5: MIN SALARY IN DEPT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_DEPT_MIN_SAL(did IN NUMBER) 
+RETURN NUMBER IS
+    min_sal NUMBER;
+BEGIN
+    SELECT MIN(SALARY) INTO min_sal FROM EMPLOYEES 
+    WHERE DEPARTMENT_ID = did;
+    RETURN NVL(min_sal, 0);
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
 
--- Running total
-SUM(salary) OVER (ORDER BY employee_id)
+-- USAGE:
+IF :OLD.SALARY < GET_DEPT_MIN_SAL(:NEW.DEPARTMENT_ID) THEN
+
+
+-- =============================================
+-- FUNCTION 6: MAX SALARY IN DEPT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_DEPT_MAX_SAL(did IN NUMBER) 
+RETURN NUMBER IS
+    max_sal NUMBER;
+BEGIN
+    SELECT MAX(SALARY) INTO max_sal FROM EMPLOYEES 
+    WHERE DEPARTMENT_ID = did;
+    RETURN NVL(max_sal, 0);
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
+
+-- USAGE:
+IF new_sal > GET_DEPT_MAX_SAL(R.DEPARTMENT_ID) THEN
+    new_sal := GET_DEPT_MAX_SAL(R.DEPARTMENT_ID);  -- cap salary
+END IF;
+
+
+-- =============================================
+-- FUNCTION 7: LOWEST SALARY EMPLOYEE ID IN DEPT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_LOWEST_EMP(did IN NUMBER) 
+RETURN NUMBER IS
+    eid NUMBER;
+BEGIN
+    SELECT EMPLOYEE_ID INTO eid FROM (
+        SELECT EMPLOYEE_ID FROM EMPLOYEES
+        WHERE DEPARTMENT_ID = did
+        ORDER BY SALARY ASC, HIRE_DATE ASC  -- tie-break by earliest hire
+    ) WHERE ROWNUM = 1;
+    RETURN eid;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+lowest_id := GET_LOWEST_EMP(R.DEPARTMENT_ID);
+
+
+-- =============================================
+-- FUNCTION 8: LOWEST SALARY EMP ID UNDER MANAGER
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_LOWEST_UNDER_MGR(mid IN NUMBER) 
+RETURN NUMBER IS
+    eid NUMBER;
+BEGIN
+    SELECT EMPLOYEE_ID INTO eid FROM (
+        SELECT EMPLOYEE_ID FROM EMPLOYEES
+        WHERE MANAGER_ID = mid
+        ORDER BY SALARY ASC
+    ) WHERE ROWNUM = 1;
+    RETURN eid;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+eid1 := GET_LOWEST_UNDER_MGR(m1);
+eid2 := GET_LOWEST_UNDER_MGR(m2);
+
+
+-- =============================================
+-- FUNCTION 9: CLOSEST SALARY EMP UNDER SAME MANAGER
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_CLOSEST_SAL_EMP(eid IN NUMBER, mid IN NUMBER, sal IN NUMBER)
+RETURN NUMBER IS
+    closest_id NUMBER;
+BEGIN
+    SELECT EMPLOYEE_ID INTO closest_id FROM (
+        SELECT EMPLOYEE_ID FROM EMPLOYEES
+        WHERE MANAGER_ID = mid
+        AND EMPLOYEE_ID <> eid          -- exclude self
+        ORDER BY ABS(SALARY - sal) ASC  -- closest salary
+    ) WHERE ROWNUM = 1;
+    RETURN closest_id;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+-- When employee leaves, find replacement
+replacement := GET_CLOSEST_SAL_EMP(:OLD.EMPLOYEE_ID, 
+                                    :OLD.MANAGER_ID, 
+                                    :OLD.SALARY);
+
+
+-- =============================================
+-- FUNCTION 10: MANAGER ID OF DEPT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_DEPT_MANAGER(did IN NUMBER) 
+RETURN NUMBER IS
+    mid NUMBER;
+BEGIN
+    SELECT MANAGER_ID INTO mid FROM DEPARTMENTS 
+    WHERE DEPARTMENT_ID = did;
+    RETURN mid;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+mgr := GET_DEPT_MANAGER(:NEW.DEPARTMENT_ID);
+IF :OLD.EMPLOYEE_ID = GET_DEPT_MANAGER(:OLD.DEPARTMENT_ID) THEN
+
+
+-- =============================================
+-- FUNCTION 11: JOB SALARY MIDPOINT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_JOB_MIDPOINT(jid IN VARCHAR2) 
+RETURN NUMBER IS
+    mid NUMBER;
+BEGIN
+    SELECT (MIN_SALARY + MAX_SALARY) / 2 INTO mid 
+    FROM JOBS WHERE JOB_ID = jid;
+    RETURN mid;
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
+
+-- USAGE:
+IF emp_salary > GET_JOB_MIDPOINT(emp_job_id) THEN  -- above midpoint
+
+
+-- =============================================
+-- FUNCTION 12: JOB COUNT (including current)
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_JOB_COUNT(eid IN NUMBER) 
+RETURN NUMBER IS
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*) + 1 INTO cnt   -- +1 for current job
+    FROM JOB_HISTORY WHERE EMPLOYEE_ID = eid;
+    RETURN cnt;
+EXCEPTION WHEN OTHERS THEN RETURN 1;
+END;
+/
+
+-- USAGE:
+IF GET_JOB_COUNT(R.EMPLOYEE_ID) >= MIN_JOB_COUNT THEN
+
+
+-- =============================================
+-- FUNCTION 13: MANAGER CRED STRING
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_MGR_CRED(email IN VARCHAR2, emp_count IN NUMBER)
+RETURN VARCHAR2 IS
+BEGIN
+    RETURN SUBSTR(email,1,2) || '**' || SUBSTR(email,-2,2) || '-' || emp_count;
+END;
+/
+
+-- USAGE:
+cred := GET_MGR_CRED(R.EMAIL, GET_SUB_COUNT(R.EMPLOYEE_ID));
+UPDATE TEMP_EMPLOYEES SET MANAGER_CRED = GET_MGR_CRED(R.EMAIL, s_count)
+WHERE EMPLOYEE_ID = R.EMPLOYEE_ID;
+
+
+-- =============================================
+-- FUNCTION 14: HIGHEST PAID EMP ID UNDER MANAGER
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_HIGHEST_UNDER_MGR(mid IN NUMBER)
+RETURN NUMBER IS
+    eid NUMBER;
+BEGIN
+    SELECT EMPLOYEE_ID INTO eid FROM (
+        SELECT EMPLOYEE_ID FROM EMPLOYEES
+        WHERE MANAGER_ID = mid
+        ORDER BY SALARY DESC
+    ) WHERE ROWNUM = 1;
+    RETURN eid;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+top_emp := GET_HIGHEST_UNDER_MGR(:OLD.EMPLOYEE_ID);
+
+
+-- =============================================
+-- FUNCTION 15: MANAGER WITH FEWEST SUBORDINATES IN DEPT
+-- =============================================
+CREATE OR REPLACE FUNCTION GET_MGR_FEWEST_SUBS(did IN NUMBER)
+RETURN NUMBER IS
+    mid NUMBER;
+BEGIN
+    SELECT MANAGER_ID INTO mid FROM (
+        SELECT MANAGER_ID, COUNT(*) AS cnt
+        FROM EMPLOYEES
+        WHERE DEPARTMENT_ID = did
+        AND MANAGER_ID IS NOT NULL
+        GROUP BY MANAGER_ID
+        ORDER BY cnt ASC
+    ) WHERE ROWNUM = 1;
+    RETURN mid;
+EXCEPTION WHEN OTHERS THEN RETURN NULL;
+END;
+/
+
+-- USAGE:
+:NEW.MANAGER_ID := GET_MGR_FEWEST_SUBS(:NEW.DEPARTMENT_ID);
+
+--=========
+--city of dept
+
+CREATE OR REPLACE FUNCTION GET_DEPT_CITY(did IN NUMBER) 
+RETURN VARCHAR2 IS
+    v_city VARCHAR2(100);
+BEGIN
+    SELECT l.CITY INTO v_city FROM DEPARTMENTS d
+    JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+    WHERE d.DEPARTMENT_ID = did;
+    RETURN v_city;
+EXCEPTION WHEN OTHERS THEN RETURN 'Unknown';
+END;
+/
+
+-- 21. Min Salary of Managers in a Specific Job
+
+
+SQL
+CREATE OR REPLACE FUNCTION GET_MIN_MGR_SAL_FOR_JOB(jid IN VARCHAR2)
+RETURN NUMBER IS
+    v_min NUMBER;
+BEGIN
+    SELECT MIN(SALARY) INTO v_min FROM EMPLOYEES
+    WHERE JOB_ID = jid AND EMPLOYEE_ID IN (SELECT DISTINCT MANAGER_ID FROM EMPLOYEES);
+    RETURN NVL(v_min, 0);
+EXCEPTION WHEN OTHERS THEN RETURN 0;
+END;
+/
